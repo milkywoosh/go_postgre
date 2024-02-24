@@ -1,0 +1,15 @@
+in this package i need to learn on how to interact with oracle database
+
+
+two main resource:
+- https://gorm.io/ [3rd party]
+- https://pkg.go.dev/database/sql  [bawaan]
+- https://github.com/imrenagi/orm-demo [repo imre]
+- https://www.enterprisedb.com/postgres-tutorials/postgresql-and-golang-tutorial [nice one to try]
+
+
+start pg => pg_ctl.exe start -D "C:\Program Files\PostgreSQL\{14}\data"
+
+
+psql -U postgres -h localhost
+password "postgres"
