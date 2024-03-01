@@ -7,7 +7,7 @@ import (
 	"database/sql"
 
 	_ "github.com/lib/pq"
-	"github.com/milkywoosh/go_postgre/orm"
+	"github.com/milkywoosh/go_postgre/modules"
 )
 
 // _ di import fungsi untuk "init" package dibelakang
@@ -43,33 +43,31 @@ func main() {
 	fmt.Println("db is now connected")
 
 	// create new constructor
-	r := orm.New(db)
+	r := modules.New(db)
 
 	// fmt.Println(time.Now().Format(time.RFC3339))
 	// return
-	cek_val, err := r.TestInsertSchoolsExecQuery(context.TODO(), "sman z", "jl. okay", "zschool@school.org")
+	// cek_val, err := r.TestInsertSchoolsExecQuery(context.TODO(), "sman z", "jl. okay", "zschool@school.org")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(cek_val)
+
+	arrayPeople, err := r.FindAllPeople(context.TODO())
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(cek_val)
-	/*
 
-		arrayPeople, err := r.FindAllPeople(context.TODO())
-		if err != nil {
-			panic(err)
-		}
+	for _, val := range arrayPeople {
+		fmt.Println(val)
+	}
 
-		for _, val := range arrayPeople {
-			fmt.Println(val)
-		}
-
-		getBenData, err := r.GetPeopleSchoolByJoin(context.TODO(), 1)
-		if err != nil {
-			panic(err.Error())
-		}
-		fmt.Println(getBenData)
-		fmt.Println("email sekolah: ", getBenData.School.Email)
-		fmt.Println("alamat sekolah: ", getBenData.School.Address)
-	*/
+	getBenData, err := r.GetPeopleSchoolByJoin(context.TODO(), 1)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println(getBenData)
+	fmt.Println("email sekolah: ", getBenData.School.Email)
+	fmt.Println("alamat sekolah: ", getBenData.School.Address)
 
 }

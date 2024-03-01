@@ -1,4 +1,4 @@
-package orm
+package modules
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func New(db *sql.DB) *DB {
 	}
 }
 
-// kalo gak mau edit gak perlu pake *DB
+// kalo gak mau edit gak perlu pake *DB ??
 func (d DB) FindAllPeople(ctx context.Context) ([]models.People, error) {
 
 	queryString := `select * from people`
@@ -44,7 +44,7 @@ func (d DB) FindAllPeople(ctx context.Context) ([]models.People, error) {
 	// close looping from rows
 	rerr := rows.Close()
 
-	// ini apa??
+	// ini apa?? ===> RETURN ERROR format for checking
 	if rerr != nil {
 		return nil, err
 	}
@@ -110,5 +110,82 @@ func (d DB) TestInsertSchoolsExecQuery(ctx context.Context, name_school string, 
 	}
 
 	return rows, nil
+
+}
+
+// method struct
+func (d DB) UseJoinSQL(ctx context.Context, id_people uint) (*models.People, error) {
+
+	query_str := `
+	select p.id id_people, p."name" name_people, s.subject name_subject  from people p
+		left join subject s on s.id_people = p.id
+		where p.id = $1
+		order by p."name" asc`
+	//  NOTEE!!!!! prepared statment harus pake $1, $2, $3 param DST
+	rows, err := d.db.QueryContext(ctx, query_str, id_people)
+
+	if err != nil {
+		return nil, err
+	}
+	// NOTE PENGGUNAAN "&"
+	// [var people models.People RETURN harus '&people'] == SETARA == [people := &models.People{}  RETURN langsung 'people' ]
+	var people models.People
+	var subject models.Subject
+
+	for rows.Next() {
+
+		err = rows.Scan(&people.ID, &people.Name, &subject.Subject)
+		if err != nil {
+			log.Fatal(err)
+		}
+		people.Subjects = append(people.Subjects, subject)
+
+	}
+
+	return &people, nil
+
+	/* convert to JSON for RESPONSE API
+	var jsonData, err := json.Marshal(data of any type, like struct, map)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var jsonString := string(jsonData)
+	fmt.Println(jsonString)
+	// test := reflect.TypeOf(data.Subjects)
+	// fmt.Println(test)
+	*/
+
+	/* hasil to MARSHAL
+	WITH OMITEMPTY
+	{
+		"id": 1,
+		"name": "ben",
+		"Subjects": [
+			{ "subject": "MATH" },
+			{ "subject": "PHYSIC" },
+			{ "subject": "LOGIC" },
+			{ "subject": "HISTORY" },
+			{ "subject": "MAGIC" }
+		]
+	}
+
+
+	=====================================================================
+	{
+	  "id": 1,
+	  "name": "ben",
+	  "school_id": 0,
+	  "Subjects": [
+	    { "id_subject": 0, "subject": "MATH", "id_people": 0 },
+	    { "id_subject": 0, "subject": "PHYSIC", "id_people": 0 },
+	    { "id_subject": 0, "subject": "LOGIC", "id_people": 0 },
+	    { "id_subject": 0, "subject": "HISTORY", "id_people": 0 },
+	    { "id_subject": 0, "subject": "MAGIC", "id_people": 0 }
+	  ]
+	}
+
+
+	*/
 
 }

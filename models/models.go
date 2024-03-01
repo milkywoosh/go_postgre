@@ -23,12 +23,12 @@ import "time"
 // note !!
 // perlu dibuat interface repository
 
-type People struct {
-	ID       uint
-	Name     string
-	SchoolID uint
-	School   *School // belongs to relationship
-}
+// type People struct {
+// 	ID       uint    `json:"id,omitempty"`
+// 	Name     string  `json:"name,omitempty"`
+// 	SchoolID uint    `json:"school_id,omitempty"`
+// 	School   *School // belongs to relationship
+// }
 
 type School struct {
 	ID         uint
@@ -36,4 +36,18 @@ type School struct {
 	Address    string
 	CreatedAt  *time.Time
 	Email      string
+}
+
+type People struct {
+	ID       uint   `json:"id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	SchoolID uint   `json:"school_id,omitempty"`
+	Subjects []Subject
+	School   *School
+}
+
+type Subject struct {
+	IdSubject uint   `json:"id_subject,omitempty"`
+	Subject   string `json:"subject,omitempty"`
+	IdPeople  uint   `json:"id_people,omitempty"`
 }
