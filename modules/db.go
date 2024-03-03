@@ -64,7 +64,7 @@ func (d DB) GetPeopleSchoolByJoin(ctx context.Context, ID uint) (*models.People,
 	//  NOTEE!!!!! prepared statment harus pake $1, $2, $3 param DST
 	err := d.db.QueryRowContext(ctx, `select p.*, s.* from people p 
 										inner join schools s on s.id = p.school_id where p.id = $1`,
-		ID).Scan(&people.ID, &people.Name, &people.SchoolID, &school.ID, &school.NameSchool, &school.Address, &school.CreatedAt, &school.Email)
+		ID).Scan(&people.ID, &people.Name, &people.SchoolID, &school.ID, &school.NameSchool, &school.Address, &school.CreatedAt, &school.EmailSchool)
 
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (d DB) UseJoinSQL(ctx context.Context, id_people uint) (*models.People, err
 
 	for rows.Next() {
 
-		err = rows.Scan(&people.ID, &people.Name, &subject.Subject)
+		err = rows.Scan(&people.ID, &people.Name, &subject.SubjectName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -187,5 +187,40 @@ func (d DB) UseJoinSQL(ctx context.Context, id_people uint) (*models.People, err
 
 
 	*/
+} // end function
 
+/*
+SELECT p.name as p_name, t.name_teacher as name_teacher, t.email, s.subject
+
+	FROM people p
+	inner join teacher t ON p.id = t.id_people
+	inner join subject s ON t.id_subject = s.id_subject;
+*/
+func (d DB) UseTripleJoin(ctx context.Context) ([]models.CompleteData, error) {
+	query := `SELECT p.name as p_name, t.name_teacher as name_teacher, t.email, s.subject
+	FROM people p
+	inner join teacher t ON p.id = t.id_people
+	inner join subject s ON t.id_subject = s.id_subject;`
+
+	var CompleteDataVals []models.CompleteData
+	var CompleteData models.CompleteData
+
+	// var people models.People
+	// var teacher models.Teacher
+	// var subject models.Subject
+	rows, err := d.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+
+		err = rows.Scan(&CompleteData.Name, &CompleteData.NameTeacher, &CompleteData.EmailTeacher, &CompleteData.SubjectName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		CompleteDataVals = append(CompleteDataVals, CompleteData)
+	}
+
+	return CompleteDataVals, nil
 }
