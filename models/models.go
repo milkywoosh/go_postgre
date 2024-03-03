@@ -31,23 +31,37 @@ import "time"
 // }
 
 type School struct {
-	ID         uint
-	NameSchool string
-	Address    string
-	CreatedAt  *time.Time
-	Email      string
+	ID          uint
+	NameSchool  string
+	Address     string
+	CreatedAt   *time.Time
+	EmailSchool string
 }
 
 type People struct {
-	ID       uint   `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	SchoolID uint   `json:"school_id,omitempty"`
-	Subjects []Subject
-	School   *School
+	ID       uint      `json:"id,omitempty"`
+	Name     string    `json:"name,omitempty"`
+	SchoolID uint      `json:"school_id,omitempty"`
+	Subjects []Subject `json:"subjects,omitempty"`
+	School   *School   `json:"school,omitempty"`
 }
 
 type Subject struct {
-	IdSubject uint   `json:"id_subject,omitempty"`
-	Subject   string `json:"subject,omitempty"`
-	IdPeople  uint   `json:"id_people,omitempty"`
+	IdSubject   uint   `json:"id_subject,omitempty"`
+	SubjectName string `json:"subject_name,omitempty"`
+	IdPeople    uint   `json:"id_people_subject,omitempty"`
+}
+type Teacher struct {
+	IdTeacher    uint   `json:"id_teacher,omitempty"`
+	NameTeacher  string `json:"name_teacher,omitempty"`
+	IdSubject    uint   `json:"id_subject_teacher,omitempty"`
+	EmailTeacher string `json:"email,omitempty"`
+	IdPeople     uint   `json:"id_people_teacher,omitempty"`
+}
+
+// NOTE: saat buat model untuk JOIN TABLE dipastikan TIDAK ADA [FIELD atau JSONFIELD] YANG SAMA pada tiap STRUCT
+type CompleteData struct {
+	Teacher
+	Subject
+	People
 }
