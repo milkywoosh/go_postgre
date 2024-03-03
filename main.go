@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+
+	//  "encoding/json"
 	"fmt"
 
 	"database/sql"
@@ -53,21 +56,54 @@ func main() {
 	// }
 	// fmt.Println(cek_val)
 
-	arrayPeople, err := r.FindAllPeople(context.TODO())
+	/*
+		arrayPeople, err := r.FindAllPeople(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+
+		for _, val := range arrayPeople {
+			fmt.Println(val)
+		}
+
+		_, err = r.GetPeopleSchoolByJoin(context.TODO(), 1)
+		if err != nil {
+			panic(err.Error())
+		}
+	*/
+	// fmt.Println(getBenData)
+	// fmt.Println("email sekolah: ", getBenData.School.Email)
+	// fmt.Println("alamat sekolah: ", getBenData.School.Address)
+
+	/*
+		var tesAja *models.People
+		tesAja, err = r.UseJoinSQL(context.TODO(), 1)
+		if err != nil {
+			panic(err)
+		}
+
+		// to Json
+
+			var jsoned []byte
+			jsoned, err = json.Marshal(tesAja)
+			if err != nil {
+				panic(err)
+			}
+
+		// datax := string(jsoned)
+
+		for index, val := range tesAja.Subjects {
+			fmt.Println(index, val.Subject)
+		}
+	*/
+
+	data, err := r.UseTripleJoin(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 
-	for _, val := range arrayPeople {
-		fmt.Println(val)
-	}
-
-	getBenData, err := r.GetPeopleSchoolByJoin(context.TODO(), 1)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println(getBenData)
-	fmt.Println("email sekolah: ", getBenData.School.Email)
-	fmt.Println("alamat sekolah: ", getBenData.School.Address)
+	var dataJson []byte
+	dataJson, err = json.Marshal(data)
+	fmt.Println(string(dataJson))
 
 }
