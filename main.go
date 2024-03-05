@@ -33,25 +33,27 @@ func init() {
 func main() {
 	fmt.Println("test")
 
-	_, err := initializer.LoadConfig(".") // why 2x init ?
+	config, err := initializer.LoadConfig(".") // why 2x init ?
 	if err != nil {
 		log.Fatal("could not load environment variable", err)
 	}
 
-	// corsConfig := cors.DefaultConfig()
-
+	// default
+	corsConfig := cors.DefaultConfig()
 	// trial
-	corsConfig := cors.Default()
+	// corsConfig := cors.Default()
 
 	// port 8000 apa ? 3000 apa ?
-	// corsConfig.AllowOrigins = []string{"http://localhost:8000", config.ClienOrigin}
-	// corsConfig.AllowCredentials = true // kalo false??
+	corsConfig.AllowOrigins = []string{"http://localhost:8000", config.ClienOrigin}
+	// default
+	corsConfig.AllowCredentials = true // kalo false??
+	// trial
 	// corsConfig.AllowCredentials = false // kalo false??
 
 	// Default
-	// server.Use(cors.New(corsConfig))
-	// Trial
-	server.Use(corsConfig)
+	server.Use(cors.New(corsConfig))
+	// trial
+	// server.Use(corsConfig)
 
 	router := server.Group("/api")
 	router.GET("/healthchecker", func(ctx *gin.Context) {
@@ -60,8 +62,10 @@ func main() {
 	})
 
 	// Default => deal with firewall
-	// log.Fatal(server.Run(":" + config.ServerPort))
+	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
+	log.Fatal(server.Run(run_server))
+
 	// Trial => byPass firewall checking
-	run_server := fmt.Sprintf("127.0.0.1:%d", 8000)
-	server.Run(run_server)
+	// run_server := fmt.Sprintf("127.0.0.1:%d", 8000)
+	// server.Run(run_server)
 }
