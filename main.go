@@ -5,61 +5,63 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+	"github.com/milkyway/gin_beginer/initializer"
 )
 
-// album represents data about a record album.
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
+var (
+	server *gin.Engine
+	// KENAPA HARUS PAKE POINTER TYPE????
+)
 
-// albums slice to seed record album data.
-var albums = []album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-}
-
-// get route
-func fetchAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
-}
-
-// post route
-func postAlbums(c *gin.Context) {
-	var newAlbum album
-	if err := c.BindJSON(&newAlbum); err != nil {
-		return
-	}
-	albums = append(albums, newAlbum)
-	c.IndentedJSON(http.StatusCreated, newAlbum)
-}
-
-func fetchAlbumsByID(c *gin.Context) {
-	id := c.Param("id")
-
-	// IN REAL IMPLEMENTATION, MUST USE DB TO DO A QUERY find by ID
-	for _, val := range albums {
-		if val.ID == id {
-			c.IndentedJSON(http.StatusOK, val)
-			return
-		}
+// init() function is RUN BEFORE main() function
+// it is used to initiate connection to database
+func init() {
+	// load config by doing checking from very root dir with this => "."
+	config, err := initializer.LoadConfig(".") // why 2x init ?
+	if err != nil {
+		log.Fatal("could not load environment variable", err)
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album is not found"})
+	initializer.StartConnectDB(&config)
+	server = gin.Default()
+
 }
 
 func main() {
 	fmt.Println("test")
 
-	var router *gin.Engine
-	router = gin.Default()
-	router.GET("/albums", fetchAlbums)
-	router.POST("/albums/create-new", postAlbums)
-	router.GET("/albums/:id", fetchAlbumsByID)
+	_, err := initializer.LoadConfig(".") // why 2x init ?
+	if err != nil {
+		log.Fatal("could not load environment variable", err)
+	}
 
-	log.Fatal(router.Run("localhost:8080"))
+	// corsConfig := cors.DefaultConfig()
+
+	// trial
+	corsConfig := cors.Default()
+
+	// port 8000 apa ? 3000 apa ?
+	// corsConfig.AllowOrigins = []string{"http://localhost:8000", config.ClienOrigin}
+	// corsConfig.AllowCredentials = true // kalo false??
+	// corsConfig.AllowCredentials = false // kalo false??
+
+	// Default
+	// server.Use(cors.New(corsConfig))
+	// Trial
+	server.Use(corsConfig)
+
+	router := server.Group("/api")
+	router.GET("/healthchecker", func(ctx *gin.Context) {
+		message := "Welcome to Gin"
+		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": message})
+	})
+
+	// Default => deal with firewall
+	// log.Fatal(server.Run(":" + config.ServerPort))
+	// Trial => byPass firewall checking
+	run_server := fmt.Sprintf("127.0.0.1:%d", 8000)
+	server.Run(run_server)
 }
