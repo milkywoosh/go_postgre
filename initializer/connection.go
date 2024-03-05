@@ -15,6 +15,10 @@ type ConnectDB struct {
 // in same package i can use type from different file.go
 // for exmple => *ConfigDB which is located in loadEnv.go
 func StartConnectDB(config *ConfigDB) {
+
+	// HOW TO CONNECT TO MULTIPLE DATABASE in golang?
+	// what PATTERN TO USE??
+
 	var DB *sql.DB
 	var err error
 	conn_credential := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai`, config.DBHost, config.DBPort, config.DBUsername, config.DBPassword, config.DBName)
