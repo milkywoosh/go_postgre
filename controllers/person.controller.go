@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -13,6 +14,10 @@ type PersonController struct {
 	DB *sql.DB
 }
 
+// note : return POINTER atau VALUE, tidak maasalah
+//
+//	itu tergantung penggunaan
+//	return POINTER enable for changing the VALUE attached to address
 func NewPersonController(db_arg *sql.DB) PersonController {
 	return PersonController{DB: db_arg}
 }
@@ -21,9 +26,10 @@ func NewPersonController(db_arg *sql.DB) PersonController {
 ////// later need to use TOKEN with////////
 ///////////////////////////////////////////
 
+// ctx disini penyalur request dari FRONT END
 func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
-	qry := `select p.id id_people, 
-				   p."name" name_people, 
+	qry := `select p.id id_person, 
+				   p."name" name_person, 
 				   s.subject name_subject 
 			from person p
 				 left join subject s on s.id_person = p.id
@@ -47,7 +53,7 @@ func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&subject_info.Person.ID, &subject_info.Person.Name, &subject_info.Subject.SubjectName)
+		err = rows.Scan(&subject_info.Person.ID, &subject_info.Person.NamePerson, &subject_info.Subject.SubjectName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,5 +63,29 @@ func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 	// return &models.Person{}, nil
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rows_subject_info, "status_db": get_status})
 	// make sure call return to stop here
-	return
+
+}
+
+func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
+	// check what inside context
+	var Person *models.Person
+	if err := ctx.ShouldBindJSON(&Person); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
+		return
+	}
+
+	log.Println("cek: ===> ", Person)
+	// note: LOCALTIMESTAMP is without TIMEZONE
+	// CURRENT_TIMESTAMP is WITH TIMEZONE
+	Person.CreatedAt = time.Now() // byPass context yg kirim value dari request Body !
+	qry_insert := `insert into person (name_person, school_id, created_by, created_at) values($1, $2, $3, $4)`
+	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID, Person.CreatedBy, Person.CreatedAt)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "failed to create new person data", "error info": err})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": result})
+
 }
