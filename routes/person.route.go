@@ -18,4 +18,5 @@ func (pc *PersonRouteController) PersonRoute(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("person")
 	// middleware Deserialize LATER IMPLEMENT
 	router.GET("/subject-info", pc.personController.PersonSubjectInfo)
+	router.POST("/create-new", pc.personController.CreateNewPerson)
 }
