@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
 )
@@ -88,4 +90,47 @@ func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": result})
 
+}
+
+func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
+	var Person models.Person
+	var Persons []models.Person
+	//
+	// what key?
+	file, err := ctx.FormFile("excel_file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	file_data, err := file.Open()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	xl_file, err := excelize.OpenReader(file_data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	now := time.Now()
+	rows := xl_file.GetRows("Sheet1")
+	for i, row := range rows {
+		if i == 0 {
+			continue
+		}
+
+		Person.CreatedAt = now
+		Person.NamePerson = row[0]
+		school_id, _ := strconv.Atoi(row[1])
+		Person.SchoolID = school_id
+		created_by, _ := strconv.Atoi(row[2])
+		Person.CreatedBy = created_by
+		log.Printf("%+v", Person)
+		// log.Printf("%+v", row[1])
+		Persons = append(Persons, Person)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "success", "data": len(Persons)})
 }
