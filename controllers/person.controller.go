@@ -92,6 +92,7 @@ func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
 
 }
 
+// BELUM SELESAI SAMPE INSERT KE TABLE
 func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
 	var Person models.Person
 	var Persons []models.Person
@@ -127,10 +128,53 @@ func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
 		Person.SchoolID = school_id
 		created_by, _ := strconv.Atoi(row[2])
 		Person.CreatedBy = created_by
-		log.Printf("%+v", Person)
+		// log.Printf("%+v", Person)
 		// log.Printf("%+v", row[1])
 		Persons = append(Persons, Person)
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "success", "data": len(Persons)})
+	log.Println(time.Since(now))
+}
+
+// api/person/plsql-one
+func (pc *PersonController) PlSqlCallDefinedFuncOne(ctx *gin.Context) {
+	// what to do ?
+
+	id_param := ctx.Param("id")
+	var Teacher models.Teacher
+	var Teachers []models.Teacher
+	// if err := ctx.ShouldBindJSON(&Teacher); err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
+	// 	return
+	// }
+
+	qry := `SELECT * FROM personbyid($1)`
+	rows, err := pc.DB.QueryContext(ctx, qry, id_param) // harus "1", kenapa id_param gagal??=> karen salah penempatan param di POSTMAN !!
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"status":  "fail",
+			"message": "No data is found",
+			"error":   err.Error(),
+		})
+		return
+	}
+	for rows.Next() {
+		err = rows.Scan(&Teacher.IdTeacher, &Teacher.NameTeacher, &Teacher.Email)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(&Teacher)
+		Teachers = append(Teachers, Teacher)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": Teachers})
+}
+
+// call PROCEDURE
+func (pc *PersonController) PlSqlCallDefinedProcOne(ctx *gin.Context) {
+
+}
+func (pc *PersonController) PlSqlCallDefinedFuncThree(ctx *gin.Context) {
+
 }
