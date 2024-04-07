@@ -20,4 +20,6 @@ func (pc *PersonRouteController) PersonRoute(routerGroup *gin.RouterGroup) {
 	router.GET("/subject-info", pc.personController.PersonSubjectInfo)
 	router.POST("/create-new", pc.personController.CreateNewPerson)
 	router.POST("/upload-xl", pc.personController.UploadMultiplePerson)
+	// harusnya buat router group "teacher"
+	router.GET("/call-deffunc/:id", pc.personController.PlSqlCallDefinedFuncOne)
 }
