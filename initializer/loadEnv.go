@@ -1,6 +1,7 @@
 package initializer
 
 import (
+	"log"
 	"time"
 
 	"github.com/spf13/viper"
@@ -37,6 +38,7 @@ func LoadConfig(path string) (config ConfigDB, err error) {
 
 	err = viper.ReadInConfig()
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 	err = viper.Unmarshal(&config)
@@ -44,5 +46,6 @@ func LoadConfig(path string) (config ConfigDB, err error) {
 		// ConfigDB{} is nil form of struct
 		return ConfigDB{}, nil
 	}
+	log.Printf("config: %v", config)
 	return config, nil
 }
