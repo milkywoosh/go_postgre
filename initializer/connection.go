@@ -10,6 +10,7 @@ type ConnectDB struct {
 	db *sql.DB
 }
 
+// instance of sql.DB
 var DB *sql.DB
 
 // in same package i can use type from different file.go
@@ -28,6 +29,7 @@ func StartConnectDB(config *ConfigDB) {
 
 	if err != nil {
 		// use log.Fatal() because this will
+		// os.Exit()
 		log.Fatal(err.Error(), "error connection to db")
 	}
 	err = DB.Ping()
