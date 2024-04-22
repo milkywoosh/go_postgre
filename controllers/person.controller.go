@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -30,14 +31,15 @@ func NewPersonController(db_arg *sql.DB) PersonController {
 
 // ctx disini penyalur request dari FRONT END
 func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
-	qry := `select p.id id_person, 
-				   p."name" name_person, 
-				   s.subject name_subject 
+	qry := `select p.id_person, 
+				   p.name_person, 
+				   s.subject_name
 			from person p
-				 left join subject s on s.id_person = p.id
-			order by p."name" asc`
+				 left join subject s on s.id_person = p.id_person
+			order by p.id_person asc`
 
 	// defer pc.DB.Close()
+	defer pc.DB.Close()
 	// perhatikan saat close DB, perlu close db conn setelah call each function ?????
 
 	var subject_info models.SubjectInfo
@@ -71,17 +73,22 @@ func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
 	// check what inside context
 	var Person *models.Person
+	// ShouldBinJSON harus represent body request
 	if err := ctx.ShouldBindJSON(&Person); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
 		return
 	}
+	Person.CreatedAt = time.Now()
+	fmt.Println(Person)
+	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": "nothing"})
+	return
 
 	log.Println("cek: ===> ", Person)
 	// note: LOCALTIMESTAMP is without TIMEZONE
 	// CURRENT_TIMESTAMP is WITH TIMEZONE
 	Person.CreatedAt = time.Now() // byPass context yg kirim value dari request Body !
-	qry_insert := `insert into person (name_person, school_id, created_by, created_at) values($1, $2, $3, $4)`
-	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID, Person.CreatedBy, Person.CreatedAt)
+	qry_insert := `insert into person (name_person, id_school) values($1, $2)`
+	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "failed to create new person data", "error info": err})
