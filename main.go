@@ -48,27 +48,16 @@ func main() {
 
 	// default
 	corsConfig := cors.DefaultConfig()
-	// trial
-	// corsConfig := cors.Default()
-
-	// port 8000 apa ? 3000 apa ?
 	corsConfig.AllowOrigins = []string{"http://localhost:8000", config.ClienOrigin}
-	// default
-	corsConfig.AllowCredentials = true // kalo false??
-	// trial
-	// corsConfig.AllowCredentials = false // kalo false??
+	corsConfig.AllowCredentials = false
 
-	// Default
 	server.Use(cors.New(corsConfig))
-	// trial
-	// server.Use(corsConfig)
 
 	router := server.Group("/api")
 	router.GET("/healthchecker", func(ctx *gin.Context) {
-		message := "Welcome to Gin"
+		message := "Welcome to Golang with Gorm and Postgres"
 		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": message})
 	})
-
 	PersonRouteController.PersonRoute(router)
 
 	// Default => deal with firewall
