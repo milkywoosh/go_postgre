@@ -21,7 +21,7 @@ func New(db *sql.DB) *DB {
 // kalo gak mau edit gak perlu pake *DB ??
 func (d DB) FindAllPeople(ctx context.Context) ([]models.People, error) {
 
-	queryString := `select * from people`
+	queryString := `select * from person`
 	rows, err := d.db.QueryContext(ctx, queryString)
 	if err != nil {
 		// panic(err)
@@ -62,8 +62,8 @@ func (d DB) GetPeopleSchoolByJoin(ctx context.Context, ID uint) (*models.People,
 	var school models.School
 
 	//  NOTEE!!!!! prepared statment harus pake $1, $2, $3 param DST
-	err := d.db.QueryRowContext(ctx, `select p.*, s.* from people p 
-										inner join schools s on s.id = p.school_id where p.id = $1`,
+	err := d.db.QueryRowContext(ctx, `select p.*, s.* from person p 
+										inner join schools s on s.id_school = p.id_school where p.id_school = $1`,
 		ID).Scan(&people.ID, &people.Name, &people.SchoolID, &school.ID, &school.NameSchool, &school.Address, &school.CreatedAt, &school.EmailSchool)
 
 	if err != nil {
@@ -98,7 +98,7 @@ func (d DB) TestInsertExecQuery(ctx context.Context, any_query_str string, arg1 
 // https://stackoverflow.com/questions/71684703/bulk-insert-with-golang-and-gorm-deadlock-in-concurrency-goroutines
 func (d DB) TestInsertSchoolsExecQuery(ctx context.Context, name_school string, address string, email string) (int64, error) {
 	// d.db.Conn()
-	result, err := d.db.ExecContext(ctx, `insert into schools (name_school, address, created_at, email) values($1, $2, current_date, $3)`, name_school, address, email)
+	result, err := d.db.ExecContext(ctx, `insert into school (name_school, address_school, created_at, email_school) values($1, $2, current_date, $3)`, name_school, address, email)
 	if err != nil {
 		// panic(err.Error("err exec context"))
 		return -1, err
@@ -117,10 +117,10 @@ func (d DB) TestInsertSchoolsExecQuery(ctx context.Context, name_school string, 
 func (d DB) UseJoinSQL(ctx context.Context, id_people uint) (*models.People, error) {
 
 	query_str := `
-	select p.id id_people, p."name" name_people, s.subject name_subject  from people p
-		left join subject s on s.id_people = p.id
-		where p.id = $1
-		order by p."name" asc`
+	select p.id_person, p.name_person, s.subject_name  from person p
+		left join subject s on s.id_person = p.id_person
+		where p.id_person = $1
+		order by p.name_person asc`
 	//  NOTEE!!!!! prepared statment harus pake $1, $2, $3 param DST
 	rows, err := d.db.QueryContext(ctx, query_str, id_people)
 
@@ -197,9 +197,9 @@ SELECT p.name as p_name, t.name_teacher as name_teacher, t.email, s.subject
 	inner join subject s ON t.id_subject = s.id_subject;
 */
 func (d DB) UseTripleJoin(ctx context.Context) ([]models.CompleteData, error) {
-	query := `SELECT p.name as p_name, t.name_teacher as name_teacher, t.email, s.subject
-	FROM people p
-	inner join teacher t ON p.id = t.id_people
+	query := `SELECT p.name_person as p_name, t.name_teacher as name_teacher, t.email_teacher, s.subject_name
+	FROM person p
+	inner join teacher t ON p.id_person = t.id_person
 	inner join subject s ON t.id_subject = s.id_subject;`
 
 	var CompleteDataVals []models.CompleteData

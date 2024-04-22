@@ -10,6 +10,7 @@ import (
 	"database/sql"
 
 	_ "github.com/lib/pq"
+	"github.com/milkywoosh/go_postgre/models"
 	"github.com/milkywoosh/go_postgre/modules"
 )
 
@@ -75,35 +76,34 @@ func main() {
 	// fmt.Println("email sekolah: ", getBenData.School.Email)
 	// fmt.Println("alamat sekolah: ", getBenData.School.Address)
 
-	/*
-		var tesAja *models.People
-		tesAja, err = r.UseJoinSQL(context.TODO(), 1)
-		if err != nil {
-			panic(err)
-		}
-
-		// to Json
-
-			var jsoned []byte
-			jsoned, err = json.Marshal(tesAja)
-			if err != nil {
-				panic(err)
-			}
-
-		// datax := string(jsoned)
-
-		for index, val := range tesAja.Subjects {
-			fmt.Println(index, val.Subject)
-		}
-	*/
-
-	data, err := r.UseTripleJoin(context.TODO())
+	var tesAja *models.People
+	tesAja, err = r.UseJoinSQL(context.TODO(), 1)
 	if err != nil {
 		panic(err)
 	}
 
-	var dataJson []byte
-	dataJson, err = json.Marshal(data)
-	fmt.Println(string(dataJson))
+	// to Json
 
+	var jsoned []byte
+	jsoned, err = json.Marshal(tesAja)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(jsoned))
+
+	for index, val := range tesAja.Subjects {
+		fmt.Println(index, val.SubjectName)
+	}
+
+	/*
+		data, err := r.UseTripleJoin(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+
+		var dataJson []byte
+		dataJson, err = json.Marshal(data)
+		fmt.Println(string(dataJson))
+	*/
 }
