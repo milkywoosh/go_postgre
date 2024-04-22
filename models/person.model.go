@@ -6,7 +6,7 @@ import "time"
 //
 
 type Person struct {
-	ID         int       `json:"id,omitempty"`
+	ID         int       `json:"id_person,omitempty"`
 	NamePerson string    `json:"name_person,omitempty"`
 	SchoolID   int       `json:"school_id,omitempty"`
 	CreatedAt  time.Time `json:"created_at,omitempty"`
