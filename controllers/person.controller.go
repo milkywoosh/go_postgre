@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,14 +31,14 @@ func NewPersonController(db_arg *sql.DB) PersonController {
 // ctx disini penyalur request dari FRONT END
 func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 	qry := `select p.id_person, 
-				   p.name_person, 
+				   p.name_person,
 				   s.subject_name
 			from person p
 				 left join subject s on s.id_person = p.id_person
 			order by p.id_person asc`
 
 	// defer pc.DB.Close()
-	defer pc.DB.Close()
+
 	// perhatikan saat close DB, perlu close db conn setelah call each function ?????
 
 	var subject_info models.SubjectInfo
@@ -57,7 +56,9 @@ func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&subject_info.Person.ID, &subject_info.Person.NamePerson, &subject_info.Subject.SubjectName)
+		err = rows.Scan(&subject_info.IdSubject,
+			&subject_info.NamePerson,
+			&subject_info.SubjectName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,20 +74,18 @@ func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
 func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
 	// check what inside context
 	var Person *models.Person
+	var now_time time.Time = time.Now()
 	// ShouldBinJSON harus represent body request
 	if err := ctx.ShouldBindJSON(&Person); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
 		return
 	}
-	Person.CreatedAt = time.Now()
-	fmt.Println(Person)
-	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": "nothing"})
-	return
+	Person.CreatedAt = &now_time
 
 	log.Println("cek: ===> ", Person)
 	// note: LOCALTIMESTAMP is without TIMEZONE
 	// CURRENT_TIMESTAMP is WITH TIMEZONE
-	Person.CreatedAt = time.Now() // byPass context yg kirim value dari request Body !
+	Person.CreatedAt = &now_time // byPass context yg kirim value dari request Body !
 	qry_insert := `insert into person (name_person, id_school) values($1, $2)`
 	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID)
 
@@ -129,12 +128,12 @@ func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
 			continue
 		}
 
-		Person.CreatedAt = now
-		Person.NamePerson = row[0]
+		Person.CreatedAt = &now
+		Person.NamePerson = &row[0]
 		school_id, _ := strconv.Atoi(row[1])
-		Person.SchoolID = school_id
+		Person.SchoolID = &school_id
 		created_by, _ := strconv.Atoi(row[2])
-		Person.CreatedBy = created_by
+		Person.CreatedBy = &created_by
 		// log.Printf("%+v", Person)
 		// log.Printf("%+v", row[1])
 		Persons = append(Persons, Person)
@@ -180,8 +179,5 @@ func (pc *PersonController) PlSqlCallDefinedFuncOne(ctx *gin.Context) {
 
 // call PROCEDURE
 func (pc *PersonController) PlSqlCallDefinedProcOne(ctx *gin.Context) {
-
-}
-func (pc *PersonController) PlSqlCallDefinedFuncThree(ctx *gin.Context) {
 
 }
