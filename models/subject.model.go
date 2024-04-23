@@ -7,6 +7,7 @@ type Subject struct {
 	IdPeople    *int    `json:"id_people_subject,omitempty"`
 }
 
+// note target left join struct hindari omit empty => to make sure all key appear !
 type SubjectInfo struct {
 	IdSubject   *int    `json:"id_subject"`
 	NamePerson  *string `json:"name_person"`
