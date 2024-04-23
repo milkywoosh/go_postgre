@@ -22,7 +22,12 @@ func StartConnectDB(config *ConfigDB) {
 
 	// var DB *sql.DB
 	var err error
+
+	// PROBLEM ==> KNP ERROR SAAT PAKE APP.env ?????
+	// TimeZone=Asia/Shanghai  ==> set waktu/jam saat ini
+	fmt.Println("test: ", config.DBHost, config.DBPort, config.DBUsername, config.DBPassword, config.DBName)
 	conn_credential := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai`, config.DBHost, config.DBPort, config.DBUsername, config.DBPassword, config.DBName)
+	// conn_credential := fmt.Sprintf(`host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Shanghai`, host, port, user, password, dbname, sslmode_val)
 	DB, err = sql.Open("postgres", conn_credential)
 
 	// defer DB.Close()  // NOTE ===> CLOSE DISINI AKAN GAGALKAN SAAT CONTROLLER FUNCTION dipanggil
