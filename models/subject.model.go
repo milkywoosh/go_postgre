@@ -8,7 +8,7 @@ type Subject struct {
 }
 
 type SubjectInfo struct {
-	IdSubject   *int    `json:"id_subject,omitempty"`
-	NamePerson  *string `json:"name_person,omitempty"`
-	SubjectName *string `json:"subject_name,omitempty"`
+	IdSubject   *int    `json:"id_subject"`
+	NamePerson  *string `json:"name_person"`
+	SubjectName *string `json:"subject_name"`
 }
