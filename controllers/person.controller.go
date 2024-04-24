@@ -80,14 +80,13 @@ func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
 		return
 	}
-	Person.CreatedAt = &now_time
 
 	log.Println("cek: ===> ", Person)
 	// note: LOCALTIMESTAMP is without TIMEZONE
 	// CURRENT_TIMESTAMP is WITH TIMEZONE
 	Person.CreatedAt = &now_time // byPass context yg kirim value dari request Body !
-	qry_insert := `insert into person (name_person, id_school) values($1, $2)`
-	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID)
+	qry_insert := `insert into person (name_person, id_school, created_at) values($1, $2, $3)`
+	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID, Person.CreatedAt)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "failed to create new person data", "error info": err})
@@ -132,8 +131,6 @@ func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
 		Person.NamePerson = &row[0]
 		school_id, _ := strconv.Atoi(row[1])
 		Person.SchoolID = &school_id
-		created_by, _ := strconv.Atoi(row[2])
-		Person.CreatedBy = &created_by
 		// log.Printf("%+v", Person)
 		// log.Printf("%+v", row[1])
 		Persons = append(Persons, Person)
