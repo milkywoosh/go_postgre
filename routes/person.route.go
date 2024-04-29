@@ -17,9 +17,10 @@ func NewRoutePersonController(personController controllers.PersonController) Per
 func (pc *PersonRouteController) PersonRoute(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("person")
 	// middleware Deserialize LATER IMPLEMENT
-	router.GET("/subject-info", pc.personController.PersonSubjectInfo)
-	router.POST("/create-new", pc.personController.CreateNewPerson)
-	router.POST("/upload-xl", pc.personController.UploadMultiplePerson)
+	router.GET("/all-person-data", pc.personController.AllPerson)
+	router.POST("/insert-new-person", pc.personController.InsertNewPerson)
+	// router.POST("/create-new", pc.personController.CreateNewPerson)
+	// router.POST("/upload-xl", pc.personController.UploadMultiplePerson)
 	// harusnya buat router group "teacher"
-	router.GET("/call-deffunc/:id", pc.personController.PlSqlCallDefinedFuncOne)
+	// router.GET("/call-deffunc/:id", pc.personController.PlSqlCallDefinedFuncOne)
 }
