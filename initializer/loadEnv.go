@@ -44,8 +44,9 @@ func LoadConfig(path string) (config ConfigDB, err error) {
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		// ConfigDB{} is nil form of struct
-		return ConfigDB{}, nil
+		// return ConfigDB{}, nil
+		log.Println(err.Error())
+		return
 	}
-	log.Printf("config: %v", config)
 	return config, nil
 }
