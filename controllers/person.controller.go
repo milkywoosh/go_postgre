@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
+	_ "github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
 )
@@ -28,153 +28,256 @@ func NewPersonController(db_arg *sql.DB) PersonController {
 ////// later need to use TOKEN with////////
 ///////////////////////////////////////////
 
-// ctx disini penyalur request dari FRONT END
-func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
-	qry := `select p.id id_person, 
-				   p."name" name_person, 
-				   s.subject name_subject 
-			from person p
-				 left join subject s on s.id_person = p.id
-			order by p."name" asc`
+func (pc PersonController) AllPerson(ctx *gin.Context) {
+	qry := `select * from person`
 
-	// defer pc.DB.Close()
-	// perhatikan saat close DB, perlu close db conn setelah call each function ?????
-
-	var subject_info models.SubjectInfo
-	var rows_subject_info []models.SubjectInfo
 	rows, err := pc.DB.QueryContext(ctx, qry)
-	get_status := pc.DB.Stats()
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"status":  "fail",
-			"message": "No data is found",
-			"error":   err.Error(),
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
 		})
-		// make sure call return to stop here
 		return
 	}
 
-	for rows.Next() {
-		err = rows.Scan(&subject_info.Person.ID, &subject_info.Person.NamePerson, &subject_info.Subject.SubjectName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		rows_subject_info = append(rows_subject_info, subject_info)
-	}
-
-	// return &models.Person{}, nil
-	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rows_subject_info, "status_db": get_status})
-	// make sure call return to stop here
-
-}
-
-func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
-	// check what inside context
-	var Person *models.Person
-	if err := ctx.ShouldBindJSON(&Person); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
-		return
-	}
-
-	log.Println("cek: ===> ", Person)
-	// note: LOCALTIMESTAMP is without TIMEZONE
-	// CURRENT_TIMESTAMP is WITH TIMEZONE
-	Person.CreatedAt = time.Now() // byPass context yg kirim value dari request Body !
-	qry_insert := `insert into person (name_person, school_id, created_by, created_at) values($1, $2, $3, $4)`
-	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID, Person.CreatedBy, Person.CreatedAt)
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "failed to create new person data", "error info": err})
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": result})
-
-}
-
-// BELUM SELESAI SAMPE INSERT KE TABLE
-func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
 	var Person models.Person
 	var Persons []models.Person
-	//
-	// what key?
-	file, err := ctx.FormFile("excel_file")
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
+	for rows.Next() {
+		err = rows.Scan(
+			&Person.ID,
+			&Person.FirstName,
+			&Person.LastName,
+			&Person.Address,
+			&Person.PhoneNumber,
+			&Person.Job,
+			&Person.InstagramName,
+			&Person.FBName,
+			&Person.PostalCode,
+			&Person.CreatedAt,
+			&Person.IDUser,
+		)
 
-	file_data, err := file.Open()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
-
-	xl_file, err := excelize.OpenReader(file_data)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
-	now := time.Now()
-	rows := xl_file.GetRows("Sheet1")
-	for i, row := range rows {
-		if i == 0 {
-			continue
+		if err != nil {
+			log.Fatal(err.Error())
+			return
 		}
-
-		Person.CreatedAt = now
-		Person.NamePerson = row[0]
-		school_id, _ := strconv.Atoi(row[1])
-		Person.SchoolID = school_id
-		created_by, _ := strconv.Atoi(row[2])
-		Person.CreatedBy = created_by
-		// log.Printf("%+v", Person)
-		// log.Printf("%+v", row[1])
 		Persons = append(Persons, Person)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "success", "data": len(Persons)})
-	log.Println(time.Since(now))
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"body":    Persons,
+		"message": "success",
+	})
+
 }
 
-// api/person/plsql-one
-func (pc *PersonController) PlSqlCallDefinedFuncOne(ctx *gin.Context) {
-	// what to do ?
-
-	id_param := ctx.Param("id")
-	var Teacher models.Teacher
-	var Teachers []models.Teacher
-	// if err := ctx.ShouldBindJSON(&Teacher); err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
-	// 	return
+func (pc PersonController) InsertNewPerson(ctx *gin.Context) {
+	// fail handling
+	// fail := func(err error) (int64, error) {
+	// 	return 0, fmt.Errorf("CreateOrder: %v", err)
 	// }
+	var err error
+	var Person *models.Person
 
-	qry := `SELECT * FROM personbyid($1)`
-	rows, err := pc.DB.QueryContext(ctx, qry, id_param) // harus "1", kenapa id_param gagal??=> karen salah penempatan param di POSTMAN !!
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"status":  "fail",
-			"message": "No data is found",
-			"error":   err.Error(),
+	if err = ctx.ShouldBindJSON(&Person); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"status": "fail1",
+			"error":  err.Error(),
 		})
 		return
 	}
-	for rows.Next() {
-		err = rows.Scan(&Teacher.IdTeacher, &Teacher.NameTeacher, &Teacher.Email)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(&Teacher)
-		Teachers = append(Teachers, Teacher)
+	// if err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{
+	// 		"status": "fail1",
+	// 		"error":  err.Error(),
+	// 	})
+	// 	return
+	// }
+	var tx *sql.Tx
+	// apa maksud Isolation: sql.LevelDefault ????
+	tx, err = pc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelDefault})
+	if err != nil {
+		log.Fatal(err.Error())
+		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": Teachers})
+	// testing salah insert value type [first_name, 100], expected error
+	insertQry := `insert into person(first_name, last_name, address, phone_number, job, instagram_uname, facebook_uname, postal_code, created_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9)`
+	// person ini get value from BODY REQUEST
+	result, err := tx.ExecContext(ctx, insertQry, &Person.FirstName, &Person.LastName, &Person.Address, &Person.PhoneNumber, &Person.Job, &Person.InstagramName, &Person.FBName, &Person.PostalCode, time.Now())
+	if err != nil {
+
+		// if something wrong do rollback
+		tx.Rollback()
+
+		ctx.JSON(http.StatusFailedDependency, gin.H{
+			"status": "fail2",
+			"error":  err.Error(),
+		})
+		return
+	}
+	fmt.Println("ape tuu result: ", result)
+
+	// BELOM TX.ROLLBACK
+	if err = tx.Commit(); err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{
+			"status": "fail3",
+			"error":  err.Error(),
+		})
+		return
+	}
+
 }
 
-// call PROCEDURE
-func (pc *PersonController) PlSqlCallDefinedProcOne(ctx *gin.Context) {
-
+func (pc PersonController) InsertNewPerson1(ctx *gin.Context) {
+	// pc.DB.BeginTx(	ctx, *sql.TxOptions{Isolation: sql})
 }
-func (pc *PersonController) PlSqlCallDefinedFuncThree(ctx *gin.Context) {
 
+func (pc PersonController) InsertNewPerson2(ctx *gin.Context) {
+	// pc.DB.BeginTx(ctx, *sql.TxOptions{Isolation: sql})
 }
+func (pc PersonController) InsertNewPerson3(ctx *gin.Context) {
+	// pc.DB.BeginTx(ctx, *sql.TxOptions{Isolation: sql})
+}
+
+// ctx disini penyalur request dari FRONT END
+// func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
+// 	qry := `select p.id id_person,
+// 				   p."name" name_person,
+// 				   s.subject name_subject
+// 			from person p
+// 				 left join subject s on s.id_person = p.id
+// 			order by p."name" asc`
+
+// 	// defer pc.DB.Close()
+// 	// perhatikan saat close DB, perlu close db conn setelah call each function ?????
+
+// 	var subject_info models.SubjectInfo
+// 	var rows_subject_info []models.SubjectInfo
+// 	rows, err := pc.DB.QueryContext(ctx, qry)
+// 	get_status := pc.DB.Stats()
+// 	if err != nil {
+// 		ctx.JSON(http.StatusNotFound, gin.H{
+// 			"status":  "fail",
+// 			"message": "No data is found",
+// 			"error":   err.Error(),
+// 		})
+// 		// make sure call return to stop here
+// 		return
+// 	}
+
+// 	for rows.Next() {
+// 		err = rows.Scan(&subject_info.Person.ID, &subject_info.Person.NamePerson, &subject_info.Subject.SubjectName)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		rows_subject_info = append(rows_subject_info, subject_info)
+// 	}
+
+// 	// return &models.Person{}, nil
+// 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rows_subject_info, "status_db": get_status})
+// 	// make sure call return to stop here
+// }
+
+// func (pc *PersonController) CreateNewPerson(ctx *gin.Context) {
+// 	// check what inside context
+// 	var Person *models.Person
+// 	if err := ctx.ShouldBindJSON(&Person); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
+// 		return
+// 	}
+
+// 	log.Println("cek: ===> ", Person)
+// 	// note: LOCALTIMESTAMP is without TIMEZONE
+// 	// CURRENT_TIMESTAMP is WITH TIMEZONE
+// 	Person.CreatedAt = time.Now() // byPass context yg kirim value dari request Body !
+// 	qry_insert := `insert into person (name_person, school_id, created_by, created_at) values($1, $2, $3, $4)`
+// 	result, err := pc.DB.ExecContext(ctx, qry_insert, Person.NamePerson, Person.SchoolID, Person.CreatedBy, Person.CreatedAt)
+
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "failed to create new person data", "error info": err})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusCreated, gin.H{"message": "success", "result": result})
+
+// }
+
+// BELUM SELESAI SAMPE INSERT KE TABLE
+// func (pc *PersonController) UploadMultiplePerson(ctx *gin.Context) {
+// 	var Person models.Person
+// 	var Persons []models.Person
+// 	//
+// 	// what key?
+// 	file, err := ctx.FormFile("excel_file")
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+
+// 	file_data, err := file.Open()
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+// 		return
+// 	}
+
+// 	xl_file, err := excelize.OpenReader(file_data)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	now := time.Now()
+// 	rows := xl_file.GetRows("Sheet1")
+// 	for i, row := range rows {
+// 		if i == 0 {
+// 			continue
+// 		}
+
+// 		Person.CreatedAt = now
+// 		Person.NamePerson = row[0]
+// 		school_id, _ := strconv.Atoi(row[1])
+// 		Person.SchoolID = school_id
+// 		created_by, _ := strconv.Atoi(row[2])
+// 		Person.CreatedBy = created_by
+// 		// log.Printf("%+v", Person)
+// 		// log.Printf("%+v", row[1])
+// 		Persons = append(Persons, Person)
+// 	}
+
+// 	ctx.JSON(http.StatusOK, gin.H{"message": "success", "data": len(Persons)})
+// 	log.Println(time.Since(now))
+// }
+
+// api/person/plsql-one
+// func (pc *PersonController) PlSqlCallDefinedFuncOne(ctx *gin.Context) {
+// 	// what to do ?
+
+// 	id_param := ctx.Param("id")
+// 	var Teacher models.Teacher
+// 	var Teachers []models.Teacher
+// 	// if err := ctx.ShouldBindJSON(&Teacher); err != nil {
+// 	// 	ctx.JSON(http.StatusBadRequest, gin.H{"message": "err request", "error info": err})
+// 	// 	return
+// 	// }
+
+// 	qry := `SELECT * FROM personbyid($1)`
+// 	rows, err := pc.DB.QueryContext(ctx, qry, id_param) // harus "1", kenapa id_param gagal??=> karen salah penempatan param di POSTMAN !!
+// 	if err != nil {
+// 		ctx.JSON(http.StatusNotFound, gin.H{
+// 			"status":  "fail",
+// 			"message": "No data is found",
+// 			"error":   err.Error(),
+// 		})
+// 		return
+// 	}
+// 	for rows.Next() {
+// 		err = rows.Scan(&Teacher.IdTeacher, &Teacher.NameTeacher, &Teacher.Email)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		log.Println(&Teacher)
+// 		Teachers = append(Teachers, Teacher)
+// 	}
+
+// 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": Teachers})
+// }
