@@ -18,6 +18,9 @@ var (
 	// KENAPA HARUS PAKE POINTER TYPE????
 	PersonController      controllers.PersonController
 	PersonRouteController routes.PersonRouteController
+
+	UsersController      controllers.UsersController
+	UsersRouteController routes.UsersRouteController
 )
 
 // init() function is RUN BEFORE main() function
@@ -33,6 +36,9 @@ func init() {
 
 	PersonController = controllers.NewPersonController(initializer.DB)
 	PersonRouteController = routes.NewRoutePersonController(PersonController)
+
+	UsersController = controllers.NewUsersController(initializer.DB)
+	UsersRouteController = routes.NewRouteUsersController(UsersController)
 
 	server = gin.Default()
 
@@ -70,6 +76,7 @@ func main() {
 	})
 
 	PersonRouteController.PersonRoute(router)
+	UsersRouteController.UsersRoute(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)

@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -33,7 +32,7 @@ func (pc PersonController) AllPerson(ctx *gin.Context) {
 
 	rows, err := pc.DB.QueryContext(ctx, qry)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"status": "fail",
 			"error":  err.Error(),
 		})
@@ -58,7 +57,11 @@ func (pc PersonController) AllPerson(ctx *gin.Context) {
 		)
 
 		if err != nil {
-			log.Fatal(err.Error())
+			// log.Fatal(err.Error())
+			ctx.AbortWithStatusJSON(http.StatusPreconditionFailed, gin.H{
+				"status": "fail",
+				"error":  err.Error(),
+			})
 			return
 		}
 		Persons = append(Persons, Person)
@@ -78,7 +81,7 @@ func (pc PersonController) InsertNewPerson(ctx *gin.Context) {
 	// }
 	var err error
 	var Person *models.Person
-
+	// shouldBindJSON : bind body request to Person model
 	if err = ctx.ShouldBindJSON(&Person); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"status": "fail1",
@@ -86,18 +89,16 @@ func (pc PersonController) InsertNewPerson(ctx *gin.Context) {
 		})
 		return
 	}
-	// if err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, gin.H{
-	// 		"status": "fail1",
-	// 		"error":  err.Error(),
-	// 	})
-	// 	return
-	// }
+
 	var tx *sql.Tx
 	// apa maksud Isolation: sql.LevelDefault ????
 	tx, err = pc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelDefault})
 	if err != nil {
-		log.Fatal(err.Error())
+		// log.Fatal(err.Error())
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
 		return
 	}
 
@@ -118,27 +119,33 @@ func (pc PersonController) InsertNewPerson(ctx *gin.Context) {
 	}
 	fmt.Println("ape tuu result: ", result)
 
-	// BELOM TX.ROLLBACK
 	if err = tx.Commit(); err != nil {
-		ctx.JSON(http.StatusConflict, gin.H{
+		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"status": "fail3",
 			"error":  err.Error(),
 		})
 		return
 	}
 
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"status": "success insert new person",
+	})
+	return
+
 }
 
-func (pc PersonController) InsertNewPerson1(ctx *gin.Context) {
-	// pc.DB.BeginTx(	ctx, *sql.TxOptions{Isolation: sql})
+/**
+func (pc PersonController) InsertNewUsers(ctx *gin.Context) {
+	pc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelLinearizable})
 }
 
 func (pc PersonController) InsertNewPerson2(ctx *gin.Context) {
-	// pc.DB.BeginTx(ctx, *sql.TxOptions{Isolation: sql})
+	pc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 }
 func (pc PersonController) InsertNewPerson3(ctx *gin.Context) {
-	// pc.DB.BeginTx(ctx, *sql.TxOptions{Isolation: sql})
+	// pc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql})
 }
+*/
 
 // ctx disini penyalur request dari FRONT END
 // func (pc *PersonController) PersonSubjectInfo(ctx *gin.Context) {
