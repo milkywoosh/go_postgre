@@ -16,7 +16,7 @@ type Person struct {
 	FBName        *string    `json:"facebook_uname"`
 	PostalCode    *string    `json:"postal_code"`
 	CreatedAt     *time.Time `json:"created_at"`
-	IDUser        int        `json:"id_user"`
+	IDUser        *int       `json:"id_user"`
 }
 
 type CreatePerson struct{}

@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/controllers"
+	"github.com/milkyway/gin_beginer/utils"
 )
 
 // create inherited struct type from PersonController
@@ -17,7 +18,7 @@ func NewRoutePersonController(personController controllers.PersonController) Per
 func (pc *PersonRouteController) PersonRoute(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("person")
 	// middleware Deserialize LATER IMPLEMENT
-	router.GET("/all-person-data", pc.personController.AllPerson)
+	router.GET("/all-person-data", utils.AuthenticateMiddleware, pc.personController.AllPerson)
 	router.POST("/insert-new-person", pc.personController.InsertNewPerson)
 	// router.POST("/create-new", pc.personController.CreateNewPerson)
 	// router.POST("/upload-xl", pc.personController.UploadMultiplePerson)

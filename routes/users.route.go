@@ -15,5 +15,9 @@ func NewRouteUsersController(usersController controllers.UsersController) UsersR
 
 func (uc *UsersRouteController) UsersRoute(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("users")
+	// implement middelware
+	// reference: https://permify.co/post/jwt-authentication-go/
+	router.POST("/login", uc.usersController.Login)
 	router.POST("/create-new-user", uc.usersController.InsertNewUser)
+	router.GET("/:id", uc.usersController.GetUserByID)
 }
