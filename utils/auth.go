@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -24,9 +25,9 @@ func CreateToken(username string) (string, error) {
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		// nanti add another info
-		"issuer": username,
-		// "expired":  time.Now().Add(time.Hour).Unix(),
-		// "issuedAt": time.Now().Unix(),
+		"issuer":   username,
+		"expired":  time.Now().Add(time.Hour).Unix(),
+		"issuedAt": time.Now().Unix(),
 		"audience": getRole(username),
 	})
 	fmt.Printf("claim jwt: %+v", claims)
