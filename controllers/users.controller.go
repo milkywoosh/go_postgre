@@ -3,11 +3,13 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
 	"github.com/milkyway/gin_beginer/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UsersController struct {
@@ -20,7 +22,25 @@ func NewUsersController(db_arg *sql.DB) UsersController {
 	}
 }
 
-func (uc UsersController) InsertNewUser(ctx *gin.Context) {
+// reference: https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72
+func (uc UsersController) HashPasswordUser(password string) (string, error) {
+	hashed_pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return string(""), nil
+	}
+	return string(hashed_pass), nil
+}
+
+func (uc UsersController) DecryptPasswordUser(hashed_password string, password string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(password))
+	if err != nil {
+		return false, err
+	}
+	// if error nil
+	return true, nil
+}
+
+func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
 	var tx *sql.Tx
 	var err error
@@ -29,20 +49,44 @@ func (uc UsersController) InsertNewUser(ctx *gin.Context) {
 	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
+			"fail":  "fail1",
 		})
 		return
 	}
+
+	hash_pass, err := uc.HashPasswordUser(*UsersModel.Password)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+			"error": err.Error(),
+			"fail":  "fail2",
+		})
+		return
+	}
+
+	_, err = uc.DecryptPasswordUser(hash_pass, *UsersModel.Password)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+			"fail":  "fail3",
+		})
+		return
+	}
+
+	// ctx.JSON(http.StatusAccepted, gin.H{
+	// 	"hash_pass": hash_pass,
+	// })
 
 	tx, err = uc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"error": err.Error(),
+			"fail":  "fail4",
 		})
 		return
 	}
-	insertUsersQry := `insert into users(username, fullname) values($1, $2)`
+	insertUsersQry := `insert into users(username, fullname, password) values($1, $2, $3)`
 	// test case duplicate entry username : success
-	_, err = tx.ExecContext(ctx, insertUsersQry, &UsersModel.UserName, &UsersModel.FullName)
+	_, err = tx.ExecContext(ctx, insertUsersQry, &UsersModel.UserName, &UsersModel.FullName, hash_pass)
 
 	if err != nil {
 		tx.Rollback()
@@ -66,7 +110,6 @@ func (uc UsersController) InsertNewUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"message": "insert new user success",
 	})
-	return
 }
 
 func (uc UsersController) GetUserByID(ctx *gin.Context) {
@@ -118,24 +161,49 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 
 func (uc UsersController) Login(c *gin.Context) {
 
-	type Log struct {
-		Username string
-		Password string
-	}
-
-	var DataUser *Log
-
-	if err := c.BindJSON(&DataUser); err != nil {
+	var DataUserReqBody *models.Users
+	var err error
+	if err = c.ShouldBindJSON(&DataUserReqBody); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err,
+			"message": err.Error(),
+			"fail":    "fail DataUserReqBody",
 		})
 		return
 	}
-	fmt.Println("===> ", DataUser.Username, DataUser.Password)
 
-	// Dummy credential check
-	if string(DataUser.Username) == "ben1" && string(DataUser.Password) == "password" {
-		tokenString, err := utils.CreateToken(DataUser.Username)
+	// var UserReq string = DataUserReqBody.Username
+	// var PassReq string = DataUserReqBody.Password
+
+	// c.JSON(200, gin.H{
+	// 	"user": UserReq,
+	// 	"pass": PassReq,
+	// })
+	// return
+
+	// tampungan hash password fetch from DB
+	var hash_password *string
+	query_get_user := `select u.username, u.password, u.fullname from users u WHERE u.username = $1 limit 1`
+	var row *sql.Row = uc.DB.QueryRowContext(c, query_get_user, DataUserReqBody.UserName)
+	// scan: tampungan data fetch from DB
+	err = row.Scan(&DataUserReqBody.UserName, &hash_password, &DataUserReqBody.FullName)
+
+	if err != nil {
+		log.Fatal("==>> ", err)
+	}
+	var decryptSuccess bool
+	decryptSuccess, err = uc.DecryptPasswordUser(*hash_password, *DataUserReqBody.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "password is wrong",
+			"data":    DataUserReqBody,
+		})
+		return
+	}
+
+	// SEND TOKEN TO COOKIE ==> validasi role atau username
+
+	if decryptSuccess {
+		tokenString, err := utils.CreateToken(*DataUserReqBody.UserName)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "Error creating token")
 			return
