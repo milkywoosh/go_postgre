@@ -57,6 +57,7 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 }
 
 func AuthenticateMiddleware(c *gin.Context) {
+
 	// Retrieve the token from the cookie
 	tokenString, err := c.Cookie("token")
 	if err != nil {
@@ -64,6 +65,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
+			"info":    "token is not set on cookie",
 		})
 		return
 	}
@@ -74,6 +76,7 @@ func AuthenticateMiddleware(c *gin.Context) {
 		fmt.Printf("Token verification failed: %v\\n", err)
 		c.AbortWithStatusJSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": err.Error(),
+			"info":    "failed verification",
 		})
 		return
 	}

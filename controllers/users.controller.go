@@ -48,8 +48,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
 	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-			"fail":  "fail1",
+			"message": err.Error(),
+			"info":    "fail1",
 		})
 		return
 	}
@@ -57,8 +57,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 	hash_pass, err := uc.HashPasswordUser(*UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"error": err.Error(),
-			"fail":  "fail2",
+			"message": err.Error(),
+			"info":    "fail2",
 		})
 		return
 	}
@@ -66,8 +66,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 	_, err = uc.DecryptPasswordUser(hash_pass, *UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-			"fail":  "fail3",
+			"message": err.Error(),
+			"info":    "fail3",
 		})
 		return
 	}
@@ -79,8 +79,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 	tx, err = uc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"error": err.Error(),
-			"fail":  "fail4",
+			"message": err.Error(),
+			"info":    "fail4",
 		})
 		return
 	}
@@ -92,8 +92,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		tx.Rollback()
 
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"error":   err.Error(),
-			"message": "err execContext",
+			"message": err.Error(),
+			"info":    "err execContext rollback",
 		})
 		return
 	}
@@ -101,8 +101,8 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 	err = tx.Commit()
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{
-			"error":   err.Error(),
-			"message": "err commit",
+			"message": err.Error(),
+			"info":    "err commit",
 		})
 		return
 	}
@@ -121,10 +121,9 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	// bisa pake ini get path :id
 	idx_query_param, ok := ctx.Params.Get("id")
 
-	fmt.Println(idx_query_param)
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "bad request",
+			"message": "failed get param",
 		})
 		return
 	}
@@ -135,8 +134,8 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	var rows *sql.Row = uc.DB.QueryRowContext(ctx, get_by_id_query, idx_query_param)
 	if err = rows.Scan(&username); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
-			"message": "StatusFailedDependency",
-			"error":   err.Error(),
+			"info":    "StatusFailedDependency",
+			"message": err.Error(),
 		})
 		return
 	}
@@ -189,6 +188,7 @@ func (uc UsersController) Login(c *gin.Context) {
 
 	if err != nil {
 		log.Fatal("==>> ", err)
+		// user is not registered!
 	}
 	var decryptSuccess bool
 	decryptSuccess, err = uc.DecryptPasswordUser(*hash_password, *DataUserReqBody.Password)
