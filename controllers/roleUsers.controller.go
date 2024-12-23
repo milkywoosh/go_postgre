@@ -9,7 +9,7 @@ import (
 )
 
 type RoleUsersController struct {
-	DB *sql.DB
+	DB *sql.DB // note => refactor this into Repository folder to make code cleaner
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -65,9 +65,8 @@ func (ru RoleUsersController) GetRoleOfUser(ctx *gin.Context) {
 			log.Fatal(err)
 		}
 
-		if EachRoleData.RoleName != "admin" {
-			AllRolesData = append(AllRolesData, EachRoleData)
-		}
+		AllRolesData = append(AllRolesData, EachRoleData)
+
 	}
 
 	rerr := rows.Close()
@@ -86,7 +85,7 @@ func (ru RoleUsersController) GetRoleOfUser(ctx *gin.Context) {
 	})
 }
 
-func AssignRoles(ctx *gin.Context) {
+func (ru RoleUsersController) AssignRoles(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"data_user": "success",

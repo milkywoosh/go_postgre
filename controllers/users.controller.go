@@ -13,7 +13,7 @@ import (
 )
 
 type UsersController struct {
-	DB *sql.DB
+	DB *sql.DB // note => refactor this into Repository folder to make code cleaner
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
