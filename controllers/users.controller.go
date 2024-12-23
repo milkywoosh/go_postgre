@@ -16,6 +16,9 @@ type UsersController struct {
 	DB *sql.DB
 }
 
+// NOTE: harusnya function call ke DB dipisah dari controllers !
+
+// constructor
 func NewUsersController(db_arg *sql.DB) UsersController {
 	return UsersController{
 		DB: db_arg,
