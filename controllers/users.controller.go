@@ -230,6 +230,7 @@ func (uc UsersController) Login(c *gin.Context) {
 		}
 
 		// fmt.Printf("Token created: %s\n", tokenString)
+		// check Cookie in header postman
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 		c.JSON(http.StatusAccepted, gin.H{
 			"message": "login succeed",

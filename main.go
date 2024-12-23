@@ -16,11 +16,13 @@ import (
 var (
 	server *gin.Engine
 	// KENAPA HARUS PAKE POINTER TYPE????
-	PersonController      controllers.PersonController
-	PersonRouteController routes.PersonRouteController
 
+	// User Manager
 	UsersController      controllers.UsersController
 	UsersRouteController routes.UsersRouteController
+
+	// purchase manager
+
 )
 
 // init() function is RUN BEFORE main() function
@@ -33,9 +35,6 @@ func init() {
 	}
 
 	initializer.StartConnectDB(&config)
-
-	PersonController = controllers.NewPersonController(initializer.DB)
-	PersonRouteController = routes.NewRoutePersonController(PersonController)
 
 	UsersController = controllers.NewUsersController(initializer.DB)
 	UsersRouteController = routes.NewRouteUsersController(UsersController)
@@ -75,12 +74,14 @@ func main() {
 		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": message})
 	})
 
-	PersonRouteController.PersonRoute(router)
 	UsersRouteController.UsersRoute(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
-	log.Fatal(server.Run(run_server))
+
+	err = server.Run(run_server)
+
+	log.Fatal(err)
 
 	// Trial => byPass firewall checking
 	// run_server := fmt.Sprintf("127.0.0.1:%d", 8000)
