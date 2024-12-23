@@ -21,6 +21,9 @@ var (
 	UsersController      controllers.UsersController
 	UsersRouteController routes.UsersRouteController
 
+	RoleUsersController      controllers.RoleUsersController
+	RoleUsersRouteController routes.RoleUsersRouteController
+
 	// purchase manager
 
 )
@@ -38,6 +41,9 @@ func init() {
 
 	UsersController = controllers.NewUsersController(initializer.DB)
 	UsersRouteController = routes.NewRouteUsersController(UsersController)
+
+	RoleUsersController = controllers.NewRoleUsersController(initializer.DB)
+	RoleUsersRouteController = routes.NewRouteRoleUsersController(RoleUsersController)
 
 	server = gin.Default()
 
@@ -75,6 +81,7 @@ func main() {
 	})
 
 	UsersRouteController.UsersRoute(router)
+	RoleUsersRouteController.RoleUsersRoute(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
