@@ -1,8 +1,21 @@
 package models
 
 type Users struct {
-	IDUser   int     `json:"id_user"`
-	UserName *string `json:"username"`
-	FullName *string `json:"fullname"`
-	Password *string `json:"password"`
+	ID              int
+	Username        string
+	Email           string
+	FirstName       string
+	LastName        string
+	Password        string
+	PasswordHistory string
+}
+
+type UserRoles struct {
+	RoleID int
+	UserID int
+}
+
+type Roles struct {
+	ID       int
+	RoleName string
 }
