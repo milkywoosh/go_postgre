@@ -44,7 +44,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
 	var tx *sql.Tx
 	var err error
-	var UsersModel *models.Users
+	var UsersModel models.Users
 
 	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -54,7 +54,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	hash_pass, err := uc.HashPasswordUser(*UsersModel.Password)
+	hash_pass, err := uc.HashPasswordUser(UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"message": err.Error(),
@@ -63,7 +63,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uc.DecryptPasswordUser(hash_pass, *UsersModel.Password)
+	_, err = uc.DecryptPasswordUser(hash_pass, UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
@@ -84,9 +84,18 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		})
 		return
 	}
-	insertUsersQry := `insert into users(username, fullname, password) values($1, $2, $3)`
+	insertUsersQry := `insert into users(username, email, password, firstname, lastname, password_history_count) values($1, $2, $3, $4, $5, $6)`
 	// test case duplicate entry username : success
-	_, err = tx.ExecContext(ctx, insertUsersQry, &UsersModel.UserName, &UsersModel.FullName, hash_pass)
+	_, err = tx.ExecContext(
+		ctx,
+		insertUsersQry,
+		&UsersModel.Username,
+		&UsersModel.Email,
+		hash_pass,
+		&UsersModel.FirstName,
+		&UsersModel.LastName,
+		0,
+	)
 
 	if err != nil {
 		tx.Rollback()
@@ -128,9 +137,9 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 
-	get_by_id_query := `select username from users u where u.id_user = $1`
+	get_by_id_query := `select username from users u where u.id = $1`
 
-	var username *string
+	var username string
 	var rows *sql.Row = uc.DB.QueryRowContext(ctx, get_by_id_query, idx_query_param)
 	if err = rows.Scan(&username); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
@@ -140,8 +149,8 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 	var token string
-	fmt.Println("tess: ", *username)
-	token, err = utils.CreateToken(*username)
+	fmt.Println("tess: ", username)
+	token, err = utils.CreateToken(username)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
@@ -151,7 +160,7 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"data_user": *username,
+		"data_user": username,
 		"token":     token,
 		"message":   "ok",
 	})
@@ -181,21 +190,32 @@ func (uc UsersController) Login(c *gin.Context) {
 
 	// tampungan hash password fetch from DB
 	var hash_password *string
-	query_get_user := `select u.username, u.password, u.fullname from users u WHERE u.username = $1 limit 1`
-	var row *sql.Row = uc.DB.QueryRowContext(c, query_get_user, DataUserReqBody.UserName)
+	query_get_user := `select u.username, u.password, u.firstname from users u WHERE u.username = $1 limit 1`
+	var row *sql.Row = uc.DB.QueryRowContext(c, query_get_user, DataUserReqBody.Username)
 	// scan: tampungan data fetch from DB
-	err = row.Scan(&DataUserReqBody.UserName, &hash_password, &DataUserReqBody.FullName)
+	err = row.Scan(&DataUserReqBody.Username, &hash_password, &DataUserReqBody.FirstName)
 
 	if err != nil {
 		log.Fatal("==>> ", err)
 		// user is not registered!
 	}
 	var decryptSuccess bool
-	decryptSuccess, err = uc.DecryptPasswordUser(*hash_password, *DataUserReqBody.Password)
+	decryptSuccess, err = uc.DecryptPasswordUser(*hash_password, DataUserReqBody.Password)
+	dataFailed := struct {
+		Username string
+		Email    string
+	}{
+		// note: struct must me started CAPITAL
+		Username: DataUserReqBody.Username,
+		Email:    DataUserReqBody.Email,
+	}
+
+	fmt.Println(dataFailed)
+
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "password is wrong",
-			"data":    DataUserReqBody,
+			"data":    dataFailed,
 		})
 		return
 	}
@@ -203,13 +223,13 @@ func (uc UsersController) Login(c *gin.Context) {
 	// SEND TOKEN TO COOKIE ==> validasi role atau username
 
 	if decryptSuccess {
-		tokenString, err := utils.CreateToken(*DataUserReqBody.UserName)
+		tokenString, err := utils.CreateToken(DataUserReqBody.Username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "Error creating token")
 			return
 		}
 
-		fmt.Printf("Token created: %s\n", tokenString)
+		// fmt.Printf("Token created: %s\n", tokenString)
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
 		c.JSON(http.StatusAccepted, gin.H{
 			"message": "login succeed",
