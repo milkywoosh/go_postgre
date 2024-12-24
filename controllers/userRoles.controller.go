@@ -2,15 +2,15 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/milkyway/gin_beginer/repositories"
 )
 
 type UserRolesController struct {
-	DB *sql.DB // note => refactor this into Repository folder to make code cleaner
+	DB            *sql.DB // note => refactor this into Repository folder to make code cleaner
+	UserRolesRepo repositories.UserRolesRepo
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -18,7 +18,9 @@ type UserRolesController struct {
 // constructor
 func NewUserRolesController(arg_db *sql.DB) UserRolesController {
 	return UserRolesController{
-		DB: arg_db,
+		UserRolesRepo: repositories.UserRolesRepo{
+			DB: arg_db,
+		},
 	}
 }
 
@@ -40,250 +42,205 @@ func (ru UserRolesController) unprocessableEntityErrorResp(message string, err s
 func (ru UserRolesController) GetRoleOfUser(ctx *gin.Context) {
 	id_user_query_param, ok := ctx.Params.Get("user_id")
 	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "failed get param id",
-		})
+		ru.badRequestErrorResp("failed get param id", "error", ctx)
 		return
 	}
 
-	get_by_id_query := `
-		SELECT r.role_name, u.username from user_roles ur
-		INNER JOIN users u on u.id = ur.user_id
-		INNER JOIN roles r on r.id = ur.role_id
-		where u.id = $1 
-	`
-
-	type RoleStruct struct {
-		Username string `json:"username"`
-		RoleName string `json:"rolename"`
-	}
-
-	var EachRoleData RoleStruct
-	var AllRolesData []RoleStruct
-
-	rows, err := ru.DB.QueryContext(ctx, get_by_id_query, id_user_query_param)
+	var AllRolesData []repositories.RoleStruct
+	var err error
+	AllRolesData, err = ru.UserRolesRepo.FetchRoleByID(id_user_query_param, ctx)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "err1",
-		})
-		return
+		ru.unprocessableEntityErrorResp("err fetch role by id", err.Error(), ctx)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		if err := rows.Scan(
-			&EachRoleData.RoleName,
-			&EachRoleData.Username,
-		); err != nil {
-			// Check for a scan error.
-			// Query rows will be closed with defer.
-
-			log.Fatal(err)
-		}
-
-		AllRolesData = append(AllRolesData, EachRoleData)
-
-	}
-
-	rerr := rows.Close()
-	if rerr != nil {
-		log.Fatal(rerr)
-	}
-
-	// Rows.Err will report the last error encountered by Rows.Scan.
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"data_user": AllRolesData,
 		"message":   "ok",
 	})
 }
 
-// check perbedaan
-func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
+// // check perbedaan
+// func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 
-	// assign role 1 by 1
-	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
-	type reqAssignRole struct {
-		Username string `json:"username"`
-		RoleName string `json:"rolename"`
-	}
+// 	// assign role 1 by 1
+// 	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
+// 	type reqAssignRole struct {
+// 		Username string `json:"username"`
+// 		RoleName string `json:"rolename"`
+// 	}
 
-	var AssignRoleDataReqBody reqAssignRole
-	var err error
-	if err = ctx.ShouldBindJSON(&AssignRoleDataReqBody); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"fail":    "fail DataUserReqBody",
-		})
-		return
-	}
+// 	var AssignRoleDataReqBody reqAssignRole
+// 	var err error
+// 	if err = ctx.ShouldBindJSON(&AssignRoleDataReqBody); err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": err.Error(),
+// 			"fail":    "fail DataUserReqBody",
+// 		})
+// 		return
+// 	}
 
-	tx, err := ru.DB.BeginTx(ctx, nil)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "err1 trx",
-			"info":    err,
-		})
-		return
-	}
+// 	tx, err := ru.DB.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": "err1 trx",
+// 			"info":    err,
+// 		})
+// 		return
+// 	}
 
-	var user_id int
-	err = tx.QueryRow("select id from users u where u.username = $1", AssignRoleDataReqBody.Username).Scan(&user_id)
+// 	var user_id int
+// 	err = tx.QueryRow("select id from users u where u.username = $1", AssignRoleDataReqBody.Username).Scan(&user_id)
 
-	switch {
-	case err == sql.ErrNoRows:
-		log.Printf("no username %s", AssignRoleDataReqBody.Username)
-		ru.badRequestErrorResp("err check username trx", err.Error(), ctx)
-		return
-	case err != nil:
-		log.Printf("err %v", err)
-	case !(err != nil):
-		log.Printf("err nil check username %v", err)
-	default:
-		log.Printf("err check def username %v", err)
-	}
+// 	switch {
+// 	case err == sql.ErrNoRows:
+// 		log.Printf("no username %s", AssignRoleDataReqBody.Username)
+// 		ru.badRequestErrorResp("err check username trx", err.Error(), ctx)
+// 		return
+// 	case err != nil:
+// 		log.Printf("err %v", err)
+// 	case !(err != nil):
+// 		log.Printf("err nil check username %v", err)
+// 	default:
+// 		log.Printf("err check def username %v", err)
+// 	}
 
-	var role_id int
-	err = tx.QueryRow("select id from roles r where r.role_name = $1", AssignRoleDataReqBody.RoleName).Scan(&role_id)
+// 	var role_id int
+// 	err = tx.QueryRow("select id from roles r where r.role_name = $1", AssignRoleDataReqBody.RoleName).Scan(&role_id)
 
-	switch {
-	case err == sql.ErrNoRows:
-		log.Printf("no role_name %s", AssignRoleDataReqBody.RoleName)
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		ru.badRequestErrorResp("err check role_name trx", err.Error(), ctx)
-		return
-	case err != nil:
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		log.Fatalf("gett err after rollback %v", err.Error())
-	case !(err != nil):
-		log.Printf("err nil check role_name %v", err)
-	default:
-		log.Printf("err check def role_name %v", err)
-	}
+// 	switch {
+// 	case err == sql.ErrNoRows:
+// 		log.Printf("no role_name %s", AssignRoleDataReqBody.RoleName)
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		ru.badRequestErrorResp("err check role_name trx", err.Error(), ctx)
+// 		return
+// 	case err != nil:
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		log.Fatalf("gett err after rollback %v", err.Error())
+// 	case !(err != nil):
+// 		log.Printf("err nil check role_name %v", err)
+// 	default:
+// 		log.Printf("err check def role_name %v", err)
+// 	}
 
-	insert_user_roles := "INSERT INTO user_roles (role_id, user_id) VALUES ($1, $2)"
+// 	insert_user_roles := "INSERT INTO user_roles (role_id, user_id) VALUES ($1, $2)"
 
-	// var resultInsertUserRoles sql.Result // note : return <nil>, error kalo value di pake => fmt.Println()
+// 	// var resultInsertUserRoles sql.Result // note : return <nil>, error kalo value di pake => fmt.Println()
 
-	_, err = tx.ExecContext(ctx, insert_user_roles, role_id, user_id)
-	if err != nil {
-		fmt.Println("errrr here!")
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		log.Println("rollbackErr: ", err.Error())
-		ru.unprocessableEntityErrorResp("err insert assign new role", err.Error(), ctx)
-		return
-	}
+// 	_, err = tx.ExecContext(ctx, insert_user_roles, role_id, user_id)
+// 	if err != nil {
+// 		fmt.Println("errrr here!")
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		log.Println("rollbackErr: ", err.Error())
+// 		ru.unprocessableEntityErrorResp("err insert assign new role", err.Error(), ctx)
+// 		return
+// 	}
 
-	err = tx.Commit()
-	if err != nil {
-		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
-		ru.unprocessableEntityErrorResp("err commit trx assign new role", err.Error(), ctx)
-		return
-	}
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
+// 		ru.unprocessableEntityErrorResp("err commit trx assign new role", err.Error(), ctx)
+// 		return
+// 	}
 
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"err":     "no_data",
-		"message": "success add new role",
-	})
-}
+// 	ctx.JSON(http.StatusAccepted, gin.H{
+// 		"err":     "no_data",
+// 		"message": "success add new role",
+// 	})
+// }
 
-func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
+// func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
 
-	// assign role 1 by 1
-	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
-	type reqAssignRole struct {
-		Username string `json:"username"`
-		RoleName string `json:"rolename"`
-	}
+// 	// assign role 1 by 1
+// 	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
+// 	type reqAssignRole struct {
+// 		Username string `json:"username"`
+// 		RoleName string `json:"rolename"`
+// 	}
 
-	var DeleteRoleDataReqBody reqAssignRole
-	var err error
-	if err = ctx.ShouldBindJSON(&DeleteRoleDataReqBody); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"fail":    "fail DataUserReqBody",
-		})
-		return
-	}
+// 	var DeleteRoleDataReqBody reqAssignRole
+// 	var err error
+// 	if err = ctx.ShouldBindJSON(&DeleteRoleDataReqBody); err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": err.Error(),
+// 			"fail":    "fail DataUserReqBody",
+// 		})
+// 		return
+// 	}
 
-	tx, err := ru.DB.BeginTx(ctx, nil)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "err1 trx",
-			"info":    err,
-		})
-		return
-	}
+// 	tx, err := ru.DB.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": "err1 trx",
+// 			"info":    err,
+// 		})
+// 		return
+// 	}
 
-	var user_id int
-	err = tx.QueryRow("select id from users u where u.username = $1", DeleteRoleDataReqBody.Username).Scan(&user_id)
+// 	var user_id int
+// 	err = tx.QueryRow("select id from users u where u.username = $1", DeleteRoleDataReqBody.Username).Scan(&user_id)
 
-	switch {
-	case err == sql.ErrNoRows:
-		log.Printf("no username %s", DeleteRoleDataReqBody.Username)
-		ru.badRequestErrorResp("err check username trx", err.Error(), ctx)
-		return
-	case err != nil:
-		log.Printf("err %v", err)
-	case !(err != nil):
-		log.Printf("err nil check username %v", err)
-	default:
-		log.Printf("err check def username %v", err)
-	}
+// 	switch {
+// 	case err == sql.ErrNoRows:
+// 		log.Printf("no username %s", DeleteRoleDataReqBody.Username)
+// 		ru.badRequestErrorResp("err check username trx", err.Error(), ctx)
+// 		return
+// 	case err != nil:
+// 		log.Printf("err %v", err)
+// 	case !(err != nil):
+// 		log.Printf("err nil check username %v", err)
+// 	default:
+// 		log.Printf("err check def username %v", err)
+// 	}
 
-	var role_id int
-	err = tx.QueryRow("select id from roles r where r.role_name = $1", DeleteRoleDataReqBody.RoleName).Scan(&role_id)
+// 	var role_id int
+// 	err = tx.QueryRow("select id from roles r where r.role_name = $1", DeleteRoleDataReqBody.RoleName).Scan(&role_id)
 
-	switch {
-	case err == sql.ErrNoRows:
-		log.Printf("no role_name %s", DeleteRoleDataReqBody.RoleName)
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		ru.badRequestErrorResp("err check role_name trx", err.Error(), ctx)
-		return
-	case err != nil:
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		log.Fatalf("gett err after rollback %v", err.Error())
-	case !(err != nil):
-		log.Printf("err nil check role_name %v", err)
-	default:
-		log.Printf("err check def role_name %v", err)
-	}
+// 	switch {
+// 	case err == sql.ErrNoRows:
+// 		log.Printf("no role_name %s", DeleteRoleDataReqBody.RoleName)
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		ru.badRequestErrorResp("err check role_name trx", err.Error(), ctx)
+// 		return
+// 	case err != nil:
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		log.Fatalf("gett err after rollback %v", err.Error())
+// 	case !(err != nil):
+// 		log.Printf("err nil check role_name %v", err)
+// 	default:
+// 		log.Printf("err check def role_name %v", err)
+// 	}
 
-	delete_user_roles := "DELETE FROM user_roles WHERE role_id=$1 AND user_id=$2"
+// 	delete_user_roles := "DELETE FROM user_roles WHERE role_id=$1 AND user_id=$2"
 
-	_, err = tx.ExecContext(ctx, delete_user_roles, role_id, user_id)
-	if err != nil {
-		fmt.Println("errrr here!")
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.Fatalf("unable to rollback: %v", rollbackErr)
-		}
-		log.Println("rollbackErr: ", err.Error())
-		ru.unprocessableEntityErrorResp("err delete role user", err.Error(), ctx)
-		return
-	}
+// 	_, err = tx.ExecContext(ctx, delete_user_roles, role_id, user_id)
+// 	if err != nil {
+// 		fmt.Println("errrr here!")
+// 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+// 			log.Fatalf("unable to rollback: %v", rollbackErr)
+// 		}
+// 		log.Println("rollbackErr: ", err.Error())
+// 		ru.unprocessableEntityErrorResp("err delete role user", err.Error(), ctx)
+// 		return
+// 	}
 
-	err = tx.Commit()
-	if err != nil {
-		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
-		ru.unprocessableEntityErrorResp("err commit trx delete user role", err.Error(), ctx)
-		return
-	}
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
+// 		ru.unprocessableEntityErrorResp("err commit trx delete user role", err.Error(), ctx)
+// 		return
+// 	}
 
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"err":     "no_data",
-		"message": "success delete role",
-	})
-}
+// 	ctx.JSON(http.StatusAccepted, gin.H{
+// 		"err":     "no_data",
+// 		"message": "success delete role",
+// 	})
+// }

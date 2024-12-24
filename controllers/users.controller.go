@@ -15,8 +15,7 @@ import (
 
 type UsersController struct {
 	// DB        *sql.DB // note => refactor this into Repository folder to make code cleaner
-	UsersRepo     repositories.UsersRepo
-	UserRolesRepo repositories.UserRolesRepo
+	UsersRepo repositories.UsersRepo
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -24,7 +23,6 @@ type UsersController struct {
 // constructor
 func NewUsersController(db_arg *sql.DB) UsersController {
 	return UsersController{
-		// DB: db_arg,
 		UsersRepo: repositories.UsersRepo{
 			DB: db_arg,
 		},
