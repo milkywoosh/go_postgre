@@ -38,8 +38,8 @@ func (ru RoleUsersController) GetRoleOfUser(ctx *gin.Context) {
 	`
 
 	type RoleStruct struct {
-		Username string
-		RoleName string
+		Username string `json:"username"`
+		RoleName string `json:"rolename"`
 	}
 
 	var EachRoleData RoleStruct
