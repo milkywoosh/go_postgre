@@ -9,34 +9,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RoleUsersController struct {
+type UserRolesController struct {
 	DB *sql.DB // note => refactor this into Repository folder to make code cleaner
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
 
 // constructor
-func NewRoleUsersController(arg_db *sql.DB) RoleUsersController {
-	return RoleUsersController{
+func NewUserRolesController(arg_db *sql.DB) UserRolesController {
+	return UserRolesController{
 		DB: arg_db,
 	}
 }
 
-func (ru RoleUsersController) badRequestErrorResp(message string, err string, ctx *gin.Context) {
+// coba dipisah sebagai interface ?
+func (ru UserRolesController) badRequestErrorResp(message string, err string, ctx *gin.Context) {
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"message": message,
 		"err":     err,
 	})
 }
 
-func (ru RoleUsersController) unprocessableEntityErrorResp(message string, err string, ctx *gin.Context) {
+func (ru UserRolesController) unprocessableEntityErrorResp(message string, err string, ctx *gin.Context) {
 	ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
 		"message": message,
 		"err":     err,
 	})
 }
 
-func (ru RoleUsersController) GetRoleOfUser(ctx *gin.Context) {
+func (ru UserRolesController) GetRoleOfUser(ctx *gin.Context) {
 	id_user_query_param, ok := ctx.Params.Get("user_id")
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -101,7 +102,7 @@ func (ru RoleUsersController) GetRoleOfUser(ctx *gin.Context) {
 }
 
 // check perbedaan
-func (ru RoleUsersController) AssignRolesBeginTx(ctx *gin.Context) {
+func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 
 	// assign role 1 by 1
 	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
@@ -195,7 +196,7 @@ func (ru RoleUsersController) AssignRolesBeginTx(ctx *gin.Context) {
 	})
 }
 
-func (ru RoleUsersController) DeleteRoleBeginTx(ctx *gin.Context) {
+func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
 
 	// assign role 1 by 1
 	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)

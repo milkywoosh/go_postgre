@@ -8,12 +8,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
+	"github.com/milkyway/gin_beginer/repositories"
 	"github.com/milkyway/gin_beginer/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UsersController struct {
-	DB *sql.DB // note => refactor this into Repository folder to make code cleaner
+	// DB        *sql.DB // note => refactor this into Repository folder to make code cleaner
+	UsersRepo     repositories.UsersRepo
+	UserRolesRepo repositories.UserRolesRepo
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -21,8 +24,18 @@ type UsersController struct {
 // constructor
 func NewUsersController(db_arg *sql.DB) UsersController {
 	return UsersController{
-		DB: db_arg,
+		// DB: db_arg,
+		UsersRepo: repositories.UsersRepo{
+			DB: db_arg,
+		},
 	}
+}
+
+func (uc UsersController) badRequestErrorResp(message string, err string, ctx *gin.Context) {
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		"message": message,
+		"err":     err,
+	})
 }
 
 // reference: https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72
@@ -43,136 +56,139 @@ func (uc UsersController) DecryptPasswordUser(hashed_password string, password s
 	return true, nil
 }
 
-func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
+// func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
-	var tx *sql.Tx
-	var err error
-	var UsersModel models.Users
+// 	var tx *sql.Tx
+// 	var err error
+// 	var UsersModel models.Users
 
-	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"info":    "fail1",
-		})
-		return
-	}
+// 	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "fail1",
+// 		})
+// 		return
+// 	}
 
-	hash_pass, err := uc.HashPasswordUser(UsersModel.Password)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"message": err.Error(),
-			"info":    "fail2",
-		})
-		return
-	}
+// 	hash_pass, err := uc.HashPasswordUser(UsersModel.Password)
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "fail2",
+// 		})
+// 		return
+// 	}
 
-	_, err = uc.DecryptPasswordUser(hash_pass, UsersModel.Password)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"info":    "fail3",
-		})
-		return
-	}
+// 	_, err = uc.DecryptPasswordUser(hash_pass, UsersModel.Password)
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "fail3",
+// 		})
+// 		return
+// 	}
 
-	// ctx.JSON(http.StatusAccepted, gin.H{
-	// 	"hash_pass": hash_pass,
-	// })
+// 	// ctx.JSON(http.StatusAccepted, gin.H{
+// 	// 	"hash_pass": hash_pass,
+// 	// })
 
-	tx, err = uc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"message": err.Error(),
-			"info":    "fail4",
-		})
-		return
-	}
-	insertUsersQry := `insert into users(username, email, password, firstname, lastname, password_history_count) values($1, $2, $3, $4, $5, $6)`
-	// test case duplicate entry username : success
-	_, err = tx.ExecContext(
-		ctx,
-		insertUsersQry,
-		&UsersModel.Username,
-		&UsersModel.Email,
-		hash_pass,
-		&UsersModel.FirstName,
-		&UsersModel.LastName,
-		0,
-	)
+// 	tx, err = uc.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "fail4",
+// 		})
+// 		return
+// 	}
+// 	insertUsersQry := `insert into users(username, email, password, firstname, lastname, password_history_count) values($1, $2, $3, $4, $5, $6)`
+// 	// test case duplicate entry username : success
+// 	_, err = tx.ExecContext(
+// 		ctx,
+// 		insertUsersQry,
+// 		&UsersModel.Username,
+// 		&UsersModel.Email,
+// 		hash_pass,
+// 		&UsersModel.FirstName,
+// 		&UsersModel.LastName,
+// 		0,
+// 	)
 
-	if err != nil {
-		tx.Rollback()
+// 	if err != nil {
+// 		tx.Rollback()
 
-		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"message": err.Error(),
-			"info":    "err execContext rollback",
-		})
-		return
-	}
+// 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "err execContext rollback",
+// 		})
+// 		return
+// 	}
 
-	err = tx.Commit()
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{
-			"message": err.Error(),
-			"info":    "err commit",
-		})
-		return
-	}
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{
+// 			"message": err.Error(),
+// 			"info":    "err commit",
+// 		})
+// 		return
+// 	}
 
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"message": "insert new user success",
-	})
-}
+// 	ctx.JSON(http.StatusAccepted, gin.H{
+// 		"message": "insert new user success",
+// 	})
+// }
 
-func (uc UsersController) GetUserByID(ctx *gin.Context) {
-	// var Users *models.Users
-	var err error
+// func (uc UsersController) GetUserByID(ctx *gin.Context) {
+// 	// var Users *models.Users
+// 	var err error
 
-	// bisa pake ini user request PATH params :id
-	// id_param := ctx.Param("id")
-	// bisa pake ini get path :id
-	idx_query_param, ok := ctx.Params.Get("id")
+// 	// bisa pake ini user request PATH params :id
+// 	// id_param := ctx.Param("id")
+// 	// bisa pake ini get path :id
+// 	idx_query_param, ok := ctx.Params.Get("id")
 
-	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "failed get param",
-		})
-		return
-	}
+// 	if !ok {
+// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+// 			"message": "failed get param",
+// 		})
+// 		return
+// 	}
 
-	get_by_id_query := `select username from users u where u.id = $1`
+// 	get_by_id_query := `select username from users u where u.id = $1`
 
-	var username string
-	var rows *sql.Row = uc.DB.QueryRowContext(ctx, get_by_id_query, idx_query_param)
-	if err = rows.Scan(&username); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
-			"info":    "StatusFailedDependency",
-			"message": err.Error(),
-		})
-		return
-	}
-	var token string
-	fmt.Println("tess: ", username)
-	token, err = utils.CreateToken(username)
+// 	var username string
+// 	var rows *sql.Row = uc.DB.QueryRowContext(ctx, get_by_id_query, idx_query_param)
+// 	if err = rows.Scan(&username); err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
+// 			"info":    "StatusFailedDependency",
+// 			"message": err.Error(),
+// 		})
+// 		return
+// 	}
+// 	var token string
+// 	fmt.Println("tess: ", username)
+// 	token, err = utils.CreateToken(username)
 
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
-			"message": "Token Err",
-			"error":   err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"data_user": username,
-		"token":     token,
-		"message":   "ok",
-	})
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
+// 			"message": "Token Err",
+// 			"error":   err.Error(),
+// 		})
+// 		return
+// 	}
+// 	ctx.JSON(http.StatusAccepted, gin.H{
+// 		"data_user": username,
+// 		"token":     token,
+// 		"message":   "ok",
+// 	})
 
-}
+// }
 
 func (uc UsersController) Login(c *gin.Context) {
 
 	var DataUserReqBody *models.Users
+	// var username string
+	var hash_password string
+
 	var err error
 	if err = c.ShouldBindJSON(&DataUserReqBody); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -182,28 +198,16 @@ func (uc UsersController) Login(c *gin.Context) {
 		return
 	}
 
-	// var UserReq string = DataUserReqBody.Username
-	// var PassReq string = DataUserReqBody.Password
-
-	// c.JSON(200, gin.H{
-	// 	"user": UserReq,
-	// 	"pass": PassReq,
-	// })
-	// return
-
-	// tampungan hash password fetch from DB
-	var hash_password *string
-	query_get_user := `select u.username, u.password, u.firstname from users u WHERE u.username = $1 limit 1`
-	var row *sql.Row = uc.DB.QueryRowContext(c, query_get_user, DataUserReqBody.Username)
-	// scan: tampungan data fetch from DB
-	err = row.Scan(&DataUserReqBody.Username, &hash_password, &DataUserReqBody.FirstName)
-
+	log.Println("DataUserReqBody.Username", DataUserReqBody.Username)
+	_, hash_password, err = uc.UsersRepo.FetchUsernamePassword(c, DataUserReqBody.Username)
 	if err != nil {
-		log.Fatal("==>> ", err)
-		// user is not registered!
+		log.Println("err fetch??")
+		uc.badRequestErrorResp("err FetchUsernamePassword", err.Error(), c)
+		return
 	}
+
 	var decryptSuccess bool
-	decryptSuccess, err = uc.DecryptPasswordUser(*hash_password, DataUserReqBody.Password)
+	decryptSuccess, err = uc.DecryptPasswordUser(hash_password, DataUserReqBody.Password)
 	dataFailed := struct {
 		Username string
 		Email    string

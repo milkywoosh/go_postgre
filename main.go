@@ -21,7 +21,7 @@ var (
 	UsersController      controllers.UsersController
 	UsersRouteController routes.UsersRouteController
 
-	RoleUsersController      controllers.RoleUsersController
+	UserRolesController      controllers.UserRolesController
 	RoleUsersRouteController routes.RoleUsersRouteController
 
 	// purchase manager
@@ -42,8 +42,8 @@ func init() {
 	UsersController = controllers.NewUsersController(initializer.DB)
 	UsersRouteController = routes.NewRouteUsersController(UsersController)
 
-	RoleUsersController = controllers.NewRoleUsersController(initializer.DB)
-	RoleUsersRouteController = routes.NewRouteRoleUsersController(RoleUsersController)
+	UserRolesController = controllers.NewUserRolesController(initializer.DB)
+	RoleUsersRouteController = routes.NewRouteUserRolesController(UserRolesController)
 
 	server = gin.Default()
 

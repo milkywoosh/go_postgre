@@ -30,7 +30,7 @@ func CreateToken(username string) (string, error) {
 		"issuedAt": time.Now().Unix(),
 		"audience": getRole(username),
 	})
-	fmt.Printf("claim jwt: %+v", claims)
+	// fmt.Printf("claim jwt: %+v", claims)
 
 	tokenString, err := claims.SignedString(secretKey)
 	if err != nil {
