@@ -195,7 +195,7 @@ func (ru RoleUsersController) AssignRolesBeginTx(ctx *gin.Context) {
 	})
 }
 
-func (ru RoleUsersController) DeleteRole(ctx *gin.Context) {
+func (ru RoleUsersController) DeleteRoleBeginTx(ctx *gin.Context) {
 
 	// assign role 1 by 1
 	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
