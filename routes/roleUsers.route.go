@@ -17,4 +17,5 @@ func (ru *RoleUsersRouteController) RoleUsersRoute(routerGroup *gin.RouterGroup)
 	router := routerGroup.Group("roleusers")
 
 	router.GET("/:user_id", ru.roleUsersController.GetRoleOfUser)
+	router.POST("/assign_role", ru.roleUsersController.AssignRolesBeginTx)
 }
