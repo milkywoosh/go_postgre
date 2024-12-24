@@ -2,6 +2,9 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -59,4 +62,145 @@ func (ur UserRolesRepo) FetchRoleByID(user_id string, ctx *gin.Context) ([]RoleS
 
 	return AllRolesData, nil
 
+}
+
+func (ur UserRolesRepo) DeleteUserRole(username, rolename string, ctx *gin.Context) error {
+
+	tx, err := ur.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var user_id int
+	err = tx.QueryRow("select id from users u where u.username = $1", username).Scan(&user_id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		log.Printf("no username %s", username)
+		return err
+	case err != nil:
+		log.Printf("err %v", err)
+		return err
+	case !(err != nil):
+		log.Printf("err nil check username %v", err)
+	default:
+		log.Printf("err check def username %v", err)
+		return err
+	}
+
+	var role_id int
+	err = tx.QueryRow("select id from roles r where r.role_name = $1", rolename).Scan(&role_id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		log.Printf("no role_name %s", rolename)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Printf("unable to rollback: %v", rollbackErr)
+			return rollbackErr
+		}
+		return err
+	case err != nil:
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Printf("unable to rollback: %v", rollbackErr)
+			return rollbackErr
+		}
+		return err
+	case !(err != nil):
+		log.Printf("err nil check role_name %v", err)
+	default:
+		log.Printf("err check def role_name %v", err)
+		return err
+	}
+
+	delete_user_roles := "DELETE FROM user_roles WHERE role_id=$1 AND user_id=$2"
+
+	_, err = tx.ExecContext(ctx, delete_user_roles, role_id, user_id)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Printf("unable to rollback: %v", rollbackErr)
+			return rollbackErr
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
+		return err
+	}
+
+	return nil
+}
+
+func (ur UserRolesRepo) InsertNewUserRole(username, rolename string, ctx *gin.Context) error {
+
+	tx, err := ur.DB.BeginTx(ctx, nil)
+	if err != nil {
+		log.Printf("err initial trx %v", err.Error())
+		return err
+	}
+
+	var user_id int
+	err = tx.QueryRow("select id from users u where u.username = $1", username).Scan(&user_id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		err_msg := fmt.Sprintf("%s: failed query fetch by parameter => %s", err.Error(), username)
+		err = errors.New(err_msg)
+		log.Printf("no username %s", username)
+		return err
+	case err != nil:
+		log.Printf("err %v", err)
+		return err
+	case !(err != nil):
+		log.Printf("err nil check username %v", err)
+	default:
+		log.Printf("err check def username %v", err)
+		return err
+	}
+
+	var role_id int
+	err = tx.QueryRow("select id from roles r where r.role_name = $1", rolename).Scan(&role_id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		log.Printf("no role_name %s", rolename)
+		err_msg := fmt.Sprintf("%s: failed query fetch by parameter => %s", err.Error(), rolename)
+		err = errors.New(err_msg)
+		return err
+	case err != nil:
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Fatalf("unable to rollback: %v", rollbackErr)
+			return rollbackErr
+		}
+		log.Fatalf("gett err after rollback %v", err.Error())
+		return err
+	case !(err != nil):
+		log.Printf("err nil check role_name %v", err)
+	default:
+		log.Printf("err check def role_name %v", err)
+		return err
+	}
+
+	insert_user_roles := "INSERT INTO user_roles (role_id, user_id) VALUES ($1, $2)"
+
+	// var resultInsertUserRoles sql.Result // note : return <nil>, error kalo value di pake => fmt.Println()
+
+	_, err = tx.ExecContext(ctx, insert_user_roles, role_id, user_id)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Fatalf("unable to rollback: %v", rollbackErr)
+			return rollbackErr
+		}
+		log.Println("rollbackErr: ", err.Error())
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		// note : err commit terjadi ketika sudah rollback tapi belum di return ??
+		return err
+	}
+
+	return nil
 }
