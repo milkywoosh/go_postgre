@@ -71,4 +71,18 @@ func (ur UsersRepo) InsertNewUser(UsersModel models.Users, hash_pass string, ctx
 		return err
 	}
 
+	return nil
+
+}
+
+func (ur UsersRepo) FetchUserByID(ctx *gin.Context, user_id string) (string, error) {
+	get_by_id_query := `select username from users u where u.id = $1`
+
+	var username string
+	var err error
+	var rows *sql.Row = ur.DB.QueryRowContext(ctx, get_by_id_query, user_id)
+	if err = rows.Scan(&username); err != nil {
+		return "", err
+	}
+	return username, nil
 }

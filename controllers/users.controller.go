@@ -103,51 +103,47 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 	})
 }
 
-// func (uc UsersController) GetUserByID(ctx *gin.Context) {
-// 	// var Users *models.Users
-// 	var err error
+func (uc UsersController) GetUserByID(ctx *gin.Context) {
+	// var Users *models.Users
+	var username string
+	var err error
 
-// 	// bisa pake ini user request PATH params :id
-// 	// id_param := ctx.Param("id")
-// 	// bisa pake ini get path :id
-// 	idx_query_param, ok := ctx.Params.Get("id")
+	// bisa pake ini user request PATH params :id
+	// id_param := ctx.Param("id")
+	// bisa pake ini get path :id
+	idx_query_param, ok := ctx.Params.Get("id")
 
-// 	if !ok {
-// 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-// 			"message": "failed get param",
-// 		})
-// 		return
-// 	}
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "failed get param",
+		})
+		return
+	}
 
-// 	get_by_id_query := `select username from users u where u.id = $1`
+	username, err = uc.UsersRepo.FetchUserByID(ctx, idx_query_param)
+	if err != nil {
+		uc.unprocessableEntityErrorResp("err fetch user", err.Error(), ctx)
+		return
+	}
 
-// 	var username string
-// 	var rows *sql.Row = uc.DB.QueryRowContext(ctx, get_by_id_query, idx_query_param)
-// 	if err = rows.Scan(&username); err != nil {
-// 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
-// 			"info":    "StatusFailedDependency",
-// 			"message": err.Error(),
-// 		})
-// 		return
-// 	}
-// 	var token string
-// 	fmt.Println("tess: ", username)
-// 	token, err = utils.CreateToken(username)
+	var token string
+	fmt.Println("tess: ", username)
+	token, err = utils.CreateToken(username)
 
-// 	if err != nil {
-// 		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
-// 			"message": "Token Err",
-// 			"error":   err.Error(),
-// 		})
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusAccepted, gin.H{
-// 		"data_user": username,
-// 		"token":     token,
-// 		"message":   "ok",
-// 	})
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
+			"message": "Token Err",
+			"error":   err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"data_user": username,
+		"token":     token,
+		"message":   "ok",
+	})
 
-// }
+}
 
 func (uc UsersController) Login(c *gin.Context) {
 
