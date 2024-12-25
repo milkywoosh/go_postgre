@@ -24,6 +24,8 @@ var (
 	UserRolesController      controllers.UserRolesController
 	RoleUsersRouteController routes.RoleUsersRouteController
 
+	BooksController      controllers.BooksController
+	BooksRouteController routes.BooksRouteController
 	// purchase manager
 
 )
@@ -44,6 +46,9 @@ func init() {
 
 	UserRolesController = controllers.NewUserRolesController(initializer.DB)
 	RoleUsersRouteController = routes.NewRouteUserRolesController(UserRolesController)
+
+	BooksController = controllers.NewBooksController(initializer.DB)
+	BooksRouteController = routes.NewRouteBooksController(BooksController)
 
 	server = gin.Default()
 
@@ -82,6 +87,7 @@ func main() {
 
 	UsersRouteController.UsersRoute(router)
 	RoleUsersRouteController.RoleUsersRoute(router)
+	BooksRouteController.BooksRoutes(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
