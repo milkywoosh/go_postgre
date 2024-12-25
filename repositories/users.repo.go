@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/milkyway/gin_beginer/models"
 )
 
 type UsersRepo struct {
@@ -33,4 +34,41 @@ func (ur UsersRepo) FetchUsernamePassword(ctx *gin.Context, username string) (st
 	}
 
 	return username_val, hash_password, nil
+}
+
+func (ur UsersRepo) InsertNewUser(UsersModel models.Users, hash_pass string, ctx *gin.Context) error {
+	var tx *sql.Tx
+	var err error
+
+	tx, err = ur.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+
+	insertUsersQry := `insert into users(username, email, password, firstname, lastname, password_history_count) values($1, $2, $3, $4, $5, $6)`
+	// test case duplicate entry username : success
+	_, err = tx.ExecContext(
+		ctx,
+		insertUsersQry,
+		&UsersModel.Username,
+		&UsersModel.Email,
+		hash_pass,
+		&UsersModel.FirstName,
+		&UsersModel.LastName,
+		0,
+	)
+
+	if err != nil {
+		// rollback
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 }
