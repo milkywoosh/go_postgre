@@ -17,4 +17,5 @@ func (brc BooksRouteController) BooksRoutes(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("books")
 
 	router.GET("/:id", brc.BooksController.GetBookByID)
+	router.GET("/search", brc.BooksController.SearchBooksByName)
 }

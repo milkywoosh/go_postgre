@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,7 +42,6 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	var id_param string
 	id_param, ok := ctx.Params.Get("id")
 
-	fmt.Println("id", id_param)
 	if !ok {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "failed get param",
@@ -51,7 +49,7 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 		return
 	}
 
-	BooksModel.BookName, err = bc.BooksRepo.FetchBookByID(ctx, id_param)
+	BooksModel.BookName, err = bc.BooksRepo.FetchBookByID(id_param, ctx)
 	if err != nil {
 		bc.unprocessableEntityErrorResp("err get book by ID", err.Error(), ctx)
 		return
@@ -60,6 +58,32 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"book_name": BooksModel.BookName,
 		"message":   "ok",
+	})
+
+}
+
+func (bc BooksController) SearchBooksByName(ctx *gin.Context) {
+	var reqBody models.Books
+	var err error
+
+	err = ctx.ShouldBindJSON(&reqBody)
+	if err != nil {
+		bc.badRequestErrorResp("failed get req body", err.Error(), ctx)
+		return
+	}
+
+	var searchResults []repositories.BooksLike
+
+	searchResults, err = bc.BooksRepo.FetchBooksLikeName(reqBody.BookName, ctx)
+	if err != nil {
+		bc.unprocessableEntityErrorResp("err search book like keyword", err.Error(), ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"result":  searchResults,
+		"token":   "no token",
+		"message": "ok",
 	})
 
 }
