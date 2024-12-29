@@ -71,7 +71,7 @@ func (bc BooksController) SearchBooksByName(ctx *gin.Context) {
 		return
 	}
 
-	var searchResults []repositories.BooksLike
+	var searchResults []models.BooksLike
 
 	searchResults, err = bc.BooksRepo.FetchBooksLikeName(reqBody.BookName, ctx)
 	if err != nil {
@@ -96,7 +96,7 @@ func (bc BooksController) SearchBooksByAuthorName(ctx *gin.Context) {
 		return
 	}
 
-	var searchResults []repositories.BooksAuthorLike
+	var searchResults []models.BooksAuthorLike
 
 	searchResults, err = bc.BooksRepo.FetchBooksByAuthor(reqBody.AuthorName, ctx)
 	if err != nil {

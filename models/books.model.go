@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -47,7 +48,6 @@ type Scanner interface {
 func (t *JSONTime) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case time.Time:
-		fmt.Println("get here")
 		t.Time = v
 		return nil
 	case []byte:
@@ -66,6 +66,34 @@ func (t *JSONTime) Scan(value interface{}) error {
 		return nil
 	default:
 		return fmt.Errorf("unsupported type: %T", v)
+	}
+}
+
+type TitleType string
+type PriceType float64
+type AuthorType string
+
+type BooksAuthorLike struct {
+	Title      TitleType `json:"title"`
+	AuthorName string    `json:"author_name"`
+	CreatedAt  JSONTime  `json:"author_registered_at"`
+}
+
+type BooksLike struct {
+	Title TitleType `json:"title"`
+	Price float64   `json:"price"`
+}
+
+func (typ TitleType) MarshalJSON() ([]byte, error) {
+	var filtered string
+	var non_filtered string
+
+	if strings.Contains(string(typ), "Plague") {
+		filtered = "Cencored Title"
+		return json.Marshal(filtered)
+	} else {
+		non_filtered = fmt.Sprintf("add %s", typ)
+		return json.Marshal(non_filtered)
 	}
 }
 
