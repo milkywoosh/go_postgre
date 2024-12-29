@@ -85,6 +85,7 @@ type BooksLike struct {
 }
 
 func (typ TitleType) MarshalJSON() ([]byte, error) {
+	// implement MarshalJSON()
 	var filtered string
 	var non_filtered string
 
