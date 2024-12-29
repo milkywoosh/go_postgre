@@ -30,7 +30,6 @@ func (t JSONTime) MarshalJSON() ([]byte, error) {
 	// Format the time as desired
 	fmt.Println("kapan dipanggil boss?")
 	stamp := fmt.Sprintf("\"%s\"", t.Time.Format("2006-01-02")) // date format golang
-	fmt.Println("stamp: ", stamp)
 	return []byte(stamp), nil
 }
 

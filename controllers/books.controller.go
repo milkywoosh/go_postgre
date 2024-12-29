@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -106,9 +105,8 @@ func (bc BooksController) SearchBooksByAuthorName(ctx *gin.Context) {
 	}
 
 	fmt.Println("ini kondisi setelah proses call to repo")
-	checktype := reflect.TypeOf(searchResults)
-	fmt.Println("checktype: ", checktype)
 
+	// note: ctx.JSON sama dgn json.Marshal(), implement Marshaler interface
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"result":  searchResults, //searchResults,
 		"token":   "no token",
