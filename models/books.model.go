@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -28,9 +29,19 @@ type Marshaler interface {
 
 func (t JSONTime) MarshalJSON() ([]byte, error) {
 	// Format the time as desired
-	fmt.Println("kapan dipanggil boss?")
-	stamp := fmt.Sprintf("\"%s\"", t.Time.Format("2006-01-02")) // date format golang
-	return []byte(stamp), nil
+	// fmt.Println("kapan dipanggil boss?")
+	// stamp := fmt.Sprintf("\"%s\"", t.Time.Format("2006-01-02")) // date format golang
+	// return []byte(stamp), nil
+
+	tm := JSONTime{
+		Time: t.Time, // or you can use a specific time
+	}
+
+	return json.Marshal(tm.Time.Format("2006-01-02"))
+}
+
+type Scanner interface {
+	Scan(value interface{}) error
 }
 
 func (t *JSONTime) Scan(value interface{}) error {
