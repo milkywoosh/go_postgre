@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/milkyway/gin_beginer/models"
 )
 
 type BooksRepo struct {
@@ -25,9 +26,13 @@ func (br BooksRepo) FetchBookByID(book_id string, ctx *gin.Context) (string, err
 	return book_name, nil
 }
 
+type TitleType string
+type PriceType float64
+type AuthorType string
+
 type BooksLike struct {
-	Title string `json:"title"`
-	Price string `json:"price"`
+	Title TitleType `json:"title"`
+	Price PriceType `json:"price"`
 }
 
 func (br BooksRepo) FetchBooksLikeName(name_like string, ctx *gin.Context) ([]BooksLike, error) {
@@ -37,7 +42,7 @@ func (br BooksRepo) FetchBooksLikeName(name_like string, ctx *gin.Context) ([]Bo
 	var rows *sql.Rows
 	var err error
 	var eachResult BooksLike
-	var searchResults []BooksLike
+	var searchResults []BooksLike = make([]BooksLike, 0)
 
 	rows, err = br.DB.QueryContext(ctx, query_books_like, name_like)
 	if err != nil {
@@ -48,6 +53,41 @@ func (br BooksRepo) FetchBooksLikeName(name_like string, ctx *gin.Context) ([]Bo
 		if err = rows.Scan(&eachResult.Title, &eachResult.Price); err != nil {
 			return nil, err
 		}
+		searchResults = append(searchResults, eachResult)
+	}
+
+	return searchResults, nil
+}
+
+type BooksAuthorLike struct {
+	Title      TitleType       `json:"title"`
+	AuthorName AuthorType      `json:"author_name"`
+	CreatedAt  models.JSONTime `json:"author_registered_at"`
+}
+
+func (br BooksRepo) FetchBooksByAuthor(author_name_like string, ctx *gin.Context) ([]BooksAuthorLike, error) {
+
+	query_books_like := fmt.Sprintf(`
+	SELECT a.author_name, b.title, DATE(a.created_at) FROM books b 
+      INNER JOIN authors a ON a.id = b.author_id 
+      WHERE author_name LIKE %s`, "'%'||$1||'%'") // '%'||$1||'%'
+
+	var rows *sql.Rows
+	var err error
+	var eachResult BooksAuthorLike
+	var searchResults []BooksAuthorLike = make([]BooksAuthorLike, 0)
+
+	rows, err = br.DB.QueryContext(ctx, query_books_like, author_name_like)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("rows", rows)
+	for rows.Next() {
+		if err = rows.Scan(&eachResult.AuthorName, &eachResult.Title, &eachResult.CreatedAt); err != nil {
+			return nil, err
+		}
+
 		searchResults = append(searchResults, eachResult)
 	}
 

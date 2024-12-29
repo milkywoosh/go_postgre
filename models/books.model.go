@@ -1,8 +1,76 @@
 package models
 
+import (
+	"fmt"
+	"time"
+)
+
 type Books struct {
 	ID       int     `json:"id"`
 	BookName string  `json:"book_name"`
 	Price    float64 `json:"price"`
 	StockQty int     `json:"stock_qty"`
 }
+
+type JSONTime struct {
+	Time time.Time
+}
+type Author struct {
+	ID                 int      `json:"id"`
+	AuthorName         string   `json:"author_name"`
+	SerialAuthorNumber string   `json:"serial_author_number"`
+	CreatedAt          JSONTime `json:"created_at"`
+}
+
+type Marshaler interface {
+	MarshalJSON() ([]byte, error)
+}
+
+func (t JSONTime) MarshalJSON() ([]byte, error) {
+	// Format the time as desired
+	fmt.Println("kapan dipanggil boss?")
+	stamp := fmt.Sprintf("\"%s\"", t.Time.Format("2006-01-02")) // date format golang
+	fmt.Println("stamp: ", stamp)
+	return []byte(stamp), nil
+}
+
+func (t *JSONTime) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case time.Time:
+		fmt.Println("get here")
+		t.Time = v
+		return nil
+	case []byte:
+		parsedTime, err := time.Parse(time.RFC3339, string(v))
+		if err != nil {
+			return err
+		}
+		t.Time = parsedTime
+		return nil
+	case string:
+		parsedTime, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return err
+		}
+		t.Time = parsedTime
+		return nil
+	default:
+		return fmt.Errorf("unsupported type: %T", v)
+	}
+}
+
+// Value implements the driver.Valuer interface for inserting/updating database values
+// func (t JSONTime) Value() (driver.Value, error) {
+// 	return t.Time, nil
+// }
+
+// UnmarshalJSON implements the json.Unmarshaler interface
+// func (t *JSONTime) UnmarshalJSON(data []byte) error {
+// 	// Parse the JSON date
+// 	parsedTime, err := time.Parse("\"2006-01-02\"", string(data))
+// 	if err != nil {
+// 		return err
+// 	}
+// 	t.Time = parsedTime
+// 	return nil
+// }

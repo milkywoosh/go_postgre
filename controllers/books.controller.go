@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -43,9 +45,7 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	id_param, ok := ctx.Params.Get("id")
 
 	if !ok {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "failed get param",
-		})
+		bc.badRequestErrorResp("failed get param", "id param not found", ctx)
 		return
 	}
 
@@ -82,6 +82,35 @@ func (bc BooksController) SearchBooksByName(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusAccepted, gin.H{
 		"result":  searchResults,
+		"token":   "no token",
+		"message": "ok",
+	})
+
+}
+func (bc BooksController) SearchBooksByAuthorName(ctx *gin.Context) {
+	var reqBody models.Author
+	var err error
+
+	err = ctx.ShouldBindJSON(&reqBody)
+	if err != nil {
+		bc.badRequestErrorResp("failed get req body", err.Error(), ctx)
+		return
+	}
+
+	var searchResults []repositories.BooksAuthorLike
+
+	searchResults, err = bc.BooksRepo.FetchBooksByAuthor(reqBody.AuthorName, ctx)
+	if err != nil {
+		bc.unprocessableEntityErrorResp("err search book like keyword", err.Error(), ctx)
+		return
+	}
+
+	fmt.Println("ini kondisi setelah proses call to repo")
+	checktype := reflect.TypeOf(searchResults)
+	fmt.Println("checktype: ", checktype)
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"result":  searchResults, //searchResults,
 		"token":   "no token",
 		"message": "ok",
 	})
