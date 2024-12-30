@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 )
 
 type Books struct {
@@ -14,9 +13,6 @@ type Books struct {
 	StockQty int     `json:"stock_qty"`
 }
 
-type JSONTime struct {
-	Time time.Time
-}
 type Author struct {
 	ID                 int      `json:"id"`
 	AuthorName         string   `json:"author_name"`
@@ -24,49 +20,8 @@ type Author struct {
 	CreatedAt          JSONTime `json:"created_at"`
 }
 
-type Marshaler interface {
-	MarshalJSON() ([]byte, error)
-}
-
-func (t JSONTime) MarshalJSON() ([]byte, error) {
-	// Format the time as desired
-	// fmt.Println("kapan dipanggil boss?")
-	// stamp := fmt.Sprintf("\"%s\"", t.Time.Format("2006-01-02")) // date format golang
-	// return []byte(stamp), nil
-
-	tm := JSONTime{
-		Time: t.Time, // or you can use a specific time
-	}
-
-	return json.Marshal(tm.Time.Format("2006-01-02"))
-}
-
 type Scanner interface {
 	Scan(value interface{}) error
-}
-
-func (t *JSONTime) Scan(value interface{}) error {
-	switch v := value.(type) {
-	case time.Time:
-		t.Time = v
-		return nil
-	case []byte:
-		parsedTime, err := time.Parse(time.RFC3339, string(v))
-		if err != nil {
-			return err
-		}
-		t.Time = parsedTime
-		return nil
-	case string:
-		parsedTime, err := time.Parse(time.RFC3339, v)
-		if err != nil {
-			return err
-		}
-		t.Time = parsedTime
-		return nil
-	default:
-		return fmt.Errorf("unsupported type: %T", v)
-	}
 }
 
 type TitleType string
