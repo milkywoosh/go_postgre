@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -29,28 +28,27 @@ type PriceType float64
 type AuthorType string
 
 type BooksAuthorLike struct {
-	Title      TitleType `json:"title"`
-	AuthorName string    `json:"author_name"`
-	CreatedAt  JSONTime  `json:"author_registered_at"`
+	Title      string   `json:"title"`
+	AuthorName string   `json:"author_name"`
+	CreatedAt  JSONTime `json:"author_registered_at"`
 }
 
 type BooksLike struct {
-	Title TitleType `json:"title"`
-	Price float64   `json:"price"`
+	Title string  `json:"title"`
+	Price float64 `json:"price"`
 }
 
-func (typ TitleType) MarshalJSON() ([]byte, error) {
+func (typ BooksAuthorLike) MarshalJSON() ([]byte, error) {
 	// implement MarshalJSON()
 	var filtered string
-	var non_filtered string
 
-	if strings.Contains(string(typ), "Plague") {
+	if strings.Contains(string(typ.Title), "Plague") {
 		filtered = "Cencored Title"
 		return json.Marshal(filtered)
 	} else {
-		non_filtered = fmt.Sprintf("add %s", typ)
-		return json.Marshal(non_filtered)
+		return json.Marshal(typ.Title)
 	}
+
 }
 
 // Value implements the driver.Valuer interface for inserting/updating database values
