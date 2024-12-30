@@ -38,15 +38,21 @@ type BooksLike struct {
 	Price float64 `json:"price"`
 }
 
-func (typ BooksAuthorLike) MarshalJSON() ([]byte, error) {
+// note , sebelumnya add TitleType di dalam struct, kemudian digunakan as method struct MarshalJSON => overflow error!
+// solusi pakai type native "string" di dalam struct agar punya `json:"any_name"`!
+func (typ *BooksAuthorLike) MarshalJSON() ([]byte, error) {
 	// implement MarshalJSON()
-	var filtered string
+
+	// log.Println(1, reflect.TypeOf(typ))
+	// log.Println(2, reflect.TypeOf(*typ))
 
 	if strings.Contains(string(typ.Title), "Plague") {
-		filtered = "Cencored Title"
-		return json.Marshal(filtered)
+
+		typ.Title = "censored title"
+
+		return json.Marshal(*typ) // note ???? harus pake asterisk
 	} else {
-		return json.Marshal(typ.Title)
+		return json.Marshal(*typ)
 	}
 
 }
