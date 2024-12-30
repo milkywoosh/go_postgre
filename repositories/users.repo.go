@@ -75,7 +75,7 @@ func (ur UsersRepo) InsertNewUser(UsersModel models.Users, hash_pass string, ctx
 
 }
 
-func (ur UsersRepo) FetchUserByID(ctx *gin.Context, user_id string) (string, error) {
+func (ur UsersRepo) FetchUserByID(ctx *gin.Context, user_id int) (string, error) {
 	get_by_id_query := `select username from users u where u.id = $1`
 
 	var username string

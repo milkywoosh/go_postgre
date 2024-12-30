@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/repositories"
@@ -40,15 +41,22 @@ func (ru UserRolesController) unprocessableEntityErrorResp(message string, err s
 }
 
 func (ru UserRolesController) GetRoleOfUser(ctx *gin.Context) {
-	id_user_query_param, ok := ctx.Params.Get("user_id")
+	var id_param_int int
+	var err error
+	id_param, ok := ctx.Params.Get("user_id")
 	if !ok {
 		ru.badRequestErrorResp("failed get param id", "error", ctx)
 		return
 	}
 
+	id_param_int, err = strconv.Atoi(id_param)
+	if err != nil {
+		ru.badRequestErrorResp("failed get param", "id conversion failed", ctx)
+		return
+	}
+
 	var AllRolesData []repositories.RoleStruct
-	var err error
-	AllRolesData, err = ru.UserRolesRepo.FetchRoleByID(id_user_query_param, ctx)
+	AllRolesData, err = ru.UserRolesRepo.FetchRoleByID(id_param_int, ctx)
 	if err != nil {
 		ru.unprocessableEntityErrorResp("err fetch role by id", err.Error(), ctx)
 	}

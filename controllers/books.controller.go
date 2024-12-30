@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -41,14 +42,20 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	var BooksModel models.Books
 	var err error
 	var id_param string
+	var id_param_int int
 	id_param, ok := ctx.Params.Get("id")
 
 	if !ok {
 		bc.badRequestErrorResp("failed get param", "id param not found", ctx)
 		return
 	}
+	id_param_int, err = strconv.Atoi(id_param)
+	if err != nil {
+		bc.badRequestErrorResp("failed get param", "id conversion failed", ctx)
+		return
+	}
 
-	BooksModel.BookName, err = bc.BooksRepo.FetchBookByID(id_param, ctx)
+	BooksModel.BookName, err = bc.BooksRepo.FetchBookByID(id_param_int, ctx)
 	if err != nil {
 		bc.unprocessableEntityErrorResp("err get book by ID", err.Error(), ctx)
 		return

@@ -12,7 +12,7 @@ type BooksRepo struct {
 	DB *sql.DB
 }
 
-func (br BooksRepo) FetchBookByID(book_id string, ctx *gin.Context) (string, error) {
+func (br BooksRepo) FetchBookByID(book_id int, ctx *gin.Context) (string, error) {
 	var book_name string
 	var rows *sql.Row
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -107,6 +108,7 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	// var Users *models.Users
 	var username string
 	var err error
+	var id_param_int int
 
 	// bisa pake ini user request PATH params :id
 	// id_param := ctx.Param("id")
@@ -120,7 +122,13 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 
-	username, err = uc.UsersRepo.FetchUserByID(ctx, idx_query_param)
+	id_param_int, err = strconv.Atoi(idx_query_param)
+	if err != nil {
+		uc.badRequestErrorResp("failed get param", "id conversion failed", ctx)
+		return
+	}
+
+	username, err = uc.UsersRepo.FetchUserByID(ctx, id_param_int)
 	if err != nil {
 		uc.unprocessableEntityErrorResp("err fetch user", err.Error(), ctx)
 		return

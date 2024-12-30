@@ -18,7 +18,7 @@ type RoleStruct struct {
 	RoleName string `json:"rolename"`
 }
 
-func (ur UserRolesRepo) FetchRoleByID(user_id string, ctx *gin.Context) ([]RoleStruct, error) {
+func (ur UserRolesRepo) FetchRoleByID(user_id int, ctx *gin.Context) ([]RoleStruct, error) {
 
 	get_by_id_query := `
 		SELECT r.role_name, u.username from user_roles ur
