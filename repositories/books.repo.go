@@ -34,6 +34,12 @@ func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) ([]models.Bo
 
 		book_info_rows = append(book_info_rows, book_info)
 	}
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return book_info_rows, nil
 }
@@ -58,6 +64,12 @@ func (br BooksRepo) FetchBooksLikeName(ctx context.Context, name_like string) ([
 			return nil, err
 		}
 		searchResults = append(searchResults, eachResult)
+	}
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return searchResults, nil
@@ -88,6 +100,12 @@ func (br BooksRepo) FetchBooksByAuthor(ctx context.Context, author_name_like str
 		}
 
 		searchResults = append(searchResults, eachResult)
+	}
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return searchResults, nil
