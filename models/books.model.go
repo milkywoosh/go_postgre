@@ -50,9 +50,18 @@ func (typ *BooksAuthorLike) MarshalJSON() ([]byte, error) {
 
 		typ.Title = "censored title"
 
-		return json.Marshal(*typ) // note ???? harus pake asterisk
+		data, err := json.Marshal(*typ) // note ???? harus pake asterisk
+		if err != nil {
+			return nil, err
+		}
+		return data, nil
+
 	} else {
-		return json.Marshal(*typ)
+		data, err := json.Marshal(*typ)
+		if err != nil {
+			return nil, err
+		}
+		return data, nil
 	}
 
 }
