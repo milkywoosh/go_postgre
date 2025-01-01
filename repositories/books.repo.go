@@ -12,7 +12,7 @@ type BooksRepo struct {
 	DB *sql.DB
 }
 
-// for testing
+// for testing repo
 func NewBooksRepo(arg_db *sql.DB) *BooksRepo {
 	return &BooksRepo{
 		DB: arg_db,
