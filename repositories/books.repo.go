@@ -12,36 +12,31 @@ type BooksRepo struct {
 	DB *sql.DB
 }
 
-func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) ([]models.Books, error) {
+// for testing
+func NewBooksRepo(arg_db *sql.DB) *BooksRepo {
+	return &BooksRepo{
+		DB: arg_db,
+	}
+}
+
+func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) (models.Books, error) {
 
 	var book_info models.Books
-	var book_info_rows []models.Books
-	var rows *sql.Rows
+	var row *sql.Row
 	var err error
 
-	query_book_get_by_id := `SELECT title, stock_qty, price FROM books b where b.id = $1`
-	rows, err = br.DB.QueryContext(ctx, query_book_get_by_id, book_id)
-	if err != nil {
-		return nil, err
+	query_book_get_by_id := `SELECT id, title, stock_qty, price FROM books b where b.id = $1`
+	row = br.DB.QueryRowContext(ctx, query_book_get_by_id, book_id)
+
+	if err = row.Scan(&book_info.ID, &book_info.BookName, &book_info.StockQty, &book_info.Price); err != nil {
+		return book_info, err
 	}
 
-	defer rows.Close() // must be called to prevent leaks connection!
-
-	for rows.Next() {
-		if err = rows.Scan(&book_info.BookName, &book_info.StockQty, &book_info.Price); err != nil {
-			return nil, err
-		}
-
-		book_info_rows = append(book_info_rows, book_info)
-	}
-	if err = rows.Close(); err != nil {
-		return nil, err
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
+	if err = row.Err(); err != nil {
+		return book_info, err
 	}
 
-	return book_info_rows, nil
+	return book_info, nil
 }
 
 func (br BooksRepo) FetchBooksLikeName(ctx context.Context, name_like string) ([]models.BooksLike, error) {

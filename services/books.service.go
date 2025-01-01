@@ -14,16 +14,16 @@ type BooksService struct {
 	BooksRepo repositories.BooksRepo
 }
 
-func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) ([]models.Books, error) {
+func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) (models.Books, error) {
 
-	var book_info_rows []models.Books
+	var book_info_row models.Books
 	var err error
 
-	book_info_rows, err = bs.BooksRepo.FetchBookByID(ctx, book_id)
+	book_info_row, err = bs.BooksRepo.FetchBookByID(ctx, book_id)
 	if err != nil {
-		return nil, err
+		return book_info_row, err
 	}
-	return book_info_rows, nil
+	return book_info_row, nil
 }
 
 func (bs BooksService) SearchLikeName(ctx context.Context, name_like string) ([]models.BooksLike, error) {

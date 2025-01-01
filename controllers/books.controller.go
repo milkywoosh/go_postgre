@@ -43,7 +43,7 @@ func (bc BooksController) unprocessableEntityErrorResp(message string, err strin
 }
 
 func (bc BooksController) GetBookByID(ctx *gin.Context) {
-	var book_info_rows []models.Books
+	var book_info_row models.Books
 	var err error
 	var id_param string
 	var id_param_int int
@@ -59,14 +59,14 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 		return
 	}
 
-	book_info_rows, err = bc.BooksService.GetBookInfo(ctx, id_param_int)
+	book_info_row, err = bc.BooksService.GetBookInfo(ctx, id_param_int)
 	if err != nil {
 		bc.unprocessableEntityErrorResp("err get book by ID", err.Error(), ctx)
 		return
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"book_info": book_info_rows,
+		"book_info": book_info_row,
 		"message":   "ok",
 	})
 
