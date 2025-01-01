@@ -1,8 +1,8 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -12,8 +12,14 @@ type UsersRepo struct {
 	DB *sql.DB
 }
 
-func (ur UsersRepo) FetchUsernamePassword(ctx *gin.Context, username string) (string, string, error) {
+// for testing repo
+func NewUsersRepo(arg_db *sql.DB) *UsersRepo {
+	return &UsersRepo{
+		DB: arg_db,
+	}
+}
 
+func (ur UsersRepo) FetchUsernamePassword(ctx context.Context, username string) (string, string, error) {
 	// tampungan hash password fetch from DB
 	var username_val string
 	var hash_password string
@@ -28,12 +34,13 @@ func (ur UsersRepo) FetchUsernamePassword(ctx *gin.Context, username string) (st
 
 	// scan: tampungan data fetch from DB
 	err = row.Scan(&username_val, &hash_password)
-	if err != nil {
-		log.Fatal("err fetchUsernamePassword", err.Error())
-		return "", "", err
-	}
+	// if err != nil {
+	// 	log.Fatal("err fetchUsernamePassword", err.Error())
+	// 	return "", "", err
+	// }
 
-	return username_val, hash_password, nil
+	return username_val, hash_password, err
+
 }
 
 func (ur UsersRepo) InsertNewUser(UsersModel models.Users, hash_pass string, ctx *gin.Context) error {
