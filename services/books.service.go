@@ -15,15 +15,15 @@ type BooksService struct {
 }
 
 func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) (models.Books, error) {
-
 	var book_info_row models.Books
 	var err error
 
 	book_info_row, err = bs.BooksRepo.FetchBookByID(ctx, book_id)
+	// note: handle error di sisi service
 	if err != nil {
 		return book_info_row, err
 	}
-	return book_info_row, nil
+	return book_info_row, err
 }
 
 func (bs BooksService) SearchLikeName(ctx context.Context, name_like string) ([]models.BooksLike, error) {
