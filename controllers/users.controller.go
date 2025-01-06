@@ -11,7 +11,6 @@ import (
 	"github.com/milkyway/gin_beginer/models"
 	"github.com/milkyway/gin_beginer/repositories"
 	"github.com/milkyway/gin_beginer/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UsersController struct {
@@ -44,24 +43,6 @@ func (uc UsersController) unprocessableEntityErrorResp(message string, err strin
 	})
 }
 
-// reference: https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72
-func (uc UsersController) HashPasswordUser(password string) (string, error) {
-	hashed_pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return string(""), nil
-	}
-	return string(hashed_pass), nil
-}
-
-func (uc UsersController) DecryptPasswordUser(hashed_password string, password string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(password))
-	if err != nil {
-		return false, err
-	}
-	// if error nil
-	return true, nil
-}
-
 func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
 	var err error
@@ -75,7 +56,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	hash_pass, err := uc.HashPasswordUser(UsersModel.Password)
+	hash_pass, err := utils.HashPasswordUser(UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"message": err.Error(),
@@ -84,7 +65,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uc.DecryptPasswordUser(hash_pass, UsersModel.Password)
+	_, err = utils.DecryptPasswordUser(hash_pass, UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
@@ -168,7 +149,6 @@ func (uc UsersController) Login(c *gin.Context) {
 		return
 	}
 
-	log.Println("DataUserReqBody.Username", DataUserReqBody.Username)
 	_, hash_password, err = uc.UsersRepo.FetchUsernamePassword(c, DataUserReqBody.Username)
 	if err != nil {
 		log.Println("err fetch??")
@@ -177,7 +157,7 @@ func (uc UsersController) Login(c *gin.Context) {
 	}
 
 	var decryptSuccess bool
-	decryptSuccess, err = uc.DecryptPasswordUser(hash_password, DataUserReqBody.Password)
+	decryptSuccess, err = utils.DecryptPasswordUser(hash_password, DataUserReqBody.Password)
 	dataFailed := struct {
 		Username string
 		Email    string
