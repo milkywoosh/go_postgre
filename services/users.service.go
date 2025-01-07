@@ -18,7 +18,7 @@ func (us UsersService) GetInfoUsernamePassword(ctx context.Context, username str
 	var hash_password string
 	var err error
 
-	username_val, hash_password, err = us.UsersRepo.FetchUsernamePassword(ctx, username)
+	username_val, hash_password, err = us.UsersRepo.FetchPasswordByUsername(ctx, username)
 	if err != nil {
 		return "", "", err
 	}

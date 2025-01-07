@@ -19,8 +19,8 @@ func NewUsersRepo(arg_db *sql.DB) *UsersRepo {
 	}
 }
 
-func (ur UsersRepo) FetchUsernamePassword(ctx context.Context, username string) (string, string, error) {
-	// tampungan hash password fetch from DB
+func (ur UsersRepo) FetchPasswordByUsername(ctx context.Context, username string) (string, string, error) {
+	// tampungan hash password fetch frsom DB
 	var username_val string
 	var hash_password string
 	var err error
@@ -35,7 +35,7 @@ func (ur UsersRepo) FetchUsernamePassword(ctx context.Context, username string) 
 	// scan: tampungan data fetch from DB
 	err = row.Scan(&username_val, &hash_password)
 	// if err != nil {
-	// 	log.Fatal("err fetchUsernamePassword", err.Error())
+	// 	log.Fatal("err fetchPasswordByUsername", err.Error())
 	// 	return "", "", err
 	// }
 

@@ -149,10 +149,10 @@ func (uc UsersController) Login(c *gin.Context) {
 		return
 	}
 
-	_, hash_password, err = uc.UsersRepo.FetchUsernamePassword(c, DataUserReqBody.Username)
+	_, hash_password, err = uc.UsersRepo.FetchPasswordByUsername(c, DataUserReqBody.Username)
 	if err != nil {
 		log.Println("err fetch??")
-		uc.badRequestErrorResp("err FetchUsernamePassword", err.Error(), c)
+		uc.badRequestErrorResp("err FetchPasswordByUsername", err.Error(), c)
 		return
 	}
 
