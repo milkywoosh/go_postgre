@@ -43,7 +43,7 @@ func (ur UsersRepo) FetchPasswordByUsername(ctx context.Context, username string
 
 }
 
-func (ur UsersRepo) InsertNewUser(UsersModel models.Users, hash_pass string, ctx *gin.Context) error {
+func (ur UsersRepo) InsertNewUser(ctx context.Context, UsersModel models.Users, hash_pass string) error {
 	var tx *sql.Tx
 	var err error
 

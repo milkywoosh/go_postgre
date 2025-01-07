@@ -3,19 +3,20 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
 	"github.com/milkyway/gin_beginer/repositories"
+	"github.com/milkyway/gin_beginer/services"
 	"github.com/milkyway/gin_beginer/utils"
 )
 
 type UsersController struct {
 	// DB        *sql.DB // note => refactor this into Repository folder to make code cleaner
-	UsersRepo repositories.UsersRepo
+	// UsersRepo    repositories.UsersRepo
+	UsersService services.UsersService
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -23,8 +24,10 @@ type UsersController struct {
 // constructor
 func NewUsersController(db_arg *sql.DB) UsersController {
 	return UsersController{
-		UsersRepo: repositories.UsersRepo{
-			DB: db_arg,
+		UsersService: services.UsersService{
+			UsersRepo: repositories.UsersRepo{
+				DB: db_arg,
+			},
 		},
 	}
 }
@@ -56,7 +59,6 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	hash_pass, err := utils.HashPasswordUser(UsersModel.Password)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"message": err.Error(),
@@ -65,23 +67,15 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	_, err = utils.DecryptPasswordUser(hash_pass, UsersModel.Password)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"info":    "fail3",
-		})
-		return
-	}
-
-	err = uc.UsersRepo.InsertNewUser(UsersModel, hash_pass, ctx)
+	var info string
+	info, err = uc.UsersService.RegisterNewUser(ctx, UsersModel)
 	if err != nil {
 		uc.unprocessableEntityErrorResp("err insert new user", err.Error(), ctx)
 		return
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"message": "insert new user success",
+		"message": fmt.Sprintf("insert new user, %s", info),
 	})
 }
 
@@ -109,14 +103,13 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 
-	username, err = uc.UsersRepo.FetchUserByID(ctx, id_param_int)
+	username, err = uc.UsersService.UsersRepo.FetchUserByID(ctx, id_param_int)
 	if err != nil {
 		uc.unprocessableEntityErrorResp("err fetch user", err.Error(), ctx)
 		return
 	}
 
 	var token string
-	fmt.Println("tess: ", username)
 	token, err = utils.CreateToken(username)
 
 	if err != nil {
@@ -136,9 +129,7 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 
 func (uc UsersController) Login(c *gin.Context) {
 
-	var DataUserReqBody *models.Users
-	// var username string
-	var hash_password string
+	var DataUserReqBody models.Users
 
 	var err error
 	if err = c.ShouldBindJSON(&DataUserReqBody); err != nil {
@@ -149,55 +140,19 @@ func (uc UsersController) Login(c *gin.Context) {
 		return
 	}
 
-	_, hash_password, err = uc.UsersRepo.FetchPasswordByUsername(c, DataUserReqBody.Username)
+	var token string
+	var info_username string
+
+	token, info_username, err = uc.UsersService.AuthLoginProcess(c, DataUserReqBody.Username, DataUserReqBody.Password)
+	fmt.Println(DataUserReqBody.Username, DataUserReqBody.Password)
 	if err != nil {
-		log.Println("err fetch??")
-		uc.badRequestErrorResp("err FetchPasswordByUsername", err.Error(), c)
+		uc.unprocessableEntityErrorResp("Err auth login process", err.Error(), c)
 		return
 	}
 
-	var decryptSuccess bool
-	decryptSuccess, err = utils.DecryptPasswordUser(hash_password, DataUserReqBody.Password)
-	dataFailed := struct {
-		Username string
-		Email    string
-	}{
-		// note: struct must me started CAPITAL
-		Username: DataUserReqBody.Username,
-		Email:    DataUserReqBody.Email,
-	}
-
-	fmt.Println(dataFailed)
-
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "password is wrong",
-			"data":    dataFailed,
-		})
-		return
-	}
-
-	// SEND TOKEN TO COOKIE ==> validasi role atau username
-
-	if decryptSuccess {
-		tokenString, err := utils.CreateToken(DataUserReqBody.Username)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, "Error creating token")
-			return
-		}
-
-		// fmt.Printf("Token created: %s\n", tokenString)
-		// check Cookie in header postman
-		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
-		c.JSON(http.StatusAccepted, gin.H{
-			"message": "login succeed",
-			"token":   tokenString,
-		})
-		return
-	} else {
-		c.AbortWithStatusJSON(http.StatusNonAuthoritativeInfo, gin.H{
-			"message": "wrong password",
-		})
-		return
-	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"data_user": info_username,
+		"token":     token,
+		"message":   "ok",
+	})
 }
