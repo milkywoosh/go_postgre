@@ -45,8 +45,20 @@ check_user_roles:
 .PHONY: run_any_query
 run_any_query:
 	docker exec -it pg17v1 psql -U postgres -d toko_buku_online_nextjs -c "\
+	select * \
+	from users u"
+
+.PHONY: find_username
+find_username:
+	docker exec -it pg17v1 psql -U postgres -d toko_buku_online_nextjs -c "\
 	select u.username \
 	from users u \
-	where u.username='luke'"
+	where u.username='poniman'"
 
-
+.PHONY: check_roles
+check_roles:
+	docker exec -it pg17v1 psql -U postgres -d toko_buku_online_nextjs -c "\
+	SELECT r.role_name, u.username from user_roles ur \
+	INNER JOIN users u on u.id = ur.user_id \
+	INNER JOIN roles r on r.id = ur.role_id \
+	where u.username = 'luke'"
