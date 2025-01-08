@@ -7,11 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/repositories"
+	"github.com/milkyway/gin_beginer/services"
 )
 
 type UserRolesController struct {
-	DB            *sql.DB // note => refactor this into Repository folder to make code cleaner
-	UserRolesRepo repositories.UserRolesRepo
+	UserRolesRepo    repositories.UserRolesRepo
+	UserRolesService services.UserRolesService
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -21,6 +22,11 @@ func NewUserRolesController(arg_db *sql.DB) UserRolesController {
 	return UserRolesController{
 		UserRolesRepo: repositories.UserRolesRepo{
 			DB: arg_db,
+		}, // mnote : harusnya userroles compose ke service!
+		UserRolesService: services.UserRolesService{
+			UserRolesRepo: repositories.UserRolesRepo{
+				DB: arg_db,
+			},
 		},
 	}
 }
@@ -86,7 +92,7 @@ func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 		return
 	}
 
-	err = ru.UserRolesRepo.InsertNewUserRole(AssignRoleDataReqBody.Username, AssignRoleDataReqBody.RoleName, ctx)
+	err = ru.UserRolesRepo.InsertNewUserRole(ctx, AssignRoleDataReqBody.Username, AssignRoleDataReqBody.RoleName)
 	if err != nil {
 		ru.unprocessableEntityErrorResp("err insert new user_role", err.Error(), ctx)
 		return
@@ -117,7 +123,7 @@ func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
 		return
 	}
 
-	err = ru.UserRolesRepo.DeleteUserRole(DeleteRoleDataReqBody.Username, DeleteRoleDataReqBody.RoleName, ctx)
+	err = ru.UserRolesRepo.DeleteUserRole(ctx, DeleteRoleDataReqBody.Username, DeleteRoleDataReqBody.RoleName)
 	if err != nil {
 		ru.unprocessableEntityErrorResp("failed delete role transaction", err.Error(), ctx)
 		return
@@ -127,4 +133,29 @@ func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
 		"err":     "no_data",
 		"message": "success delete role",
 	})
+}
+
+func (ru UserRolesController) GetRolesByUsername(ctx *gin.Context) {
+	var username_param string
+	var ok bool
+	var err error
+
+	username_param, ok = ctx.Params.Get("username")
+	if !ok {
+		ru.badRequestErrorResp("failed get param username", "error", ctx)
+		return
+	}
+
+	var info_roles []repositories.RoleStruct = []repositories.RoleStruct{}
+	info_roles, err = ru.UserRolesService.WhatRoles(ctx, username_param)
+	if err != nil {
+		ru.unprocessableEntityErrorResp("error check what roles", err.Error(), ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"data":    info_roles,
+		"message": "success get roles",
+	})
+
 }
