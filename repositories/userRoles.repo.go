@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -11,6 +12,12 @@ import (
 
 type UserRolesRepo struct {
 	DB *sql.DB
+}
+
+func NewUserRolesRepo(arg_db *sql.DB) *UserRolesRepo {
+	return &UserRolesRepo{
+		DB: arg_db,
+	}
 }
 
 type RoleStruct struct {
@@ -63,8 +70,51 @@ func (ur UserRolesRepo) FetchRoleByID(user_id int, ctx *gin.Context) ([]RoleStru
 	return AllRolesData, nil
 
 }
+func (ur UserRolesRepo) FetchRolesByUsername(ctx context.Context, username string) ([]RoleStruct, error) {
 
-func (ur UserRolesRepo) DeleteUserRole(username, rolename string, ctx *gin.Context) error {
+	get_by_id_query := `
+		SELECT r.role_name from user_roles ur
+		INNER JOIN users u on u.id = ur.user_id
+		INNER JOIN roles r on r.id = ur.role_id
+		where u.username = $1 
+	`
+	var EachRoleData RoleStruct
+	var AllRolesData []RoleStruct
+
+	rows, err := ur.DB.QueryContext(ctx, get_by_id_query, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&EachRoleData.RoleName,
+		); err != nil {
+			// Check for a scan error.
+			// Query rows will be closed with defer.
+
+			return nil, err
+		}
+
+		AllRolesData = append(AllRolesData, EachRoleData)
+	}
+
+	rerr := rows.Close()
+	if rerr != nil {
+		return nil, err
+	}
+
+	// Rows.Err will report the last error encountered by Rows.Scan.
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return AllRolesData, nil
+
+}
+
+func (ur UserRolesRepo) DeleteUserRole(ctx *gin.Context, username, rolename string) error {
 
 	tx, err := ur.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -132,7 +182,7 @@ func (ur UserRolesRepo) DeleteUserRole(username, rolename string, ctx *gin.Conte
 	return nil
 }
 
-func (ur UserRolesRepo) InsertNewUserRole(username, rolename string, ctx *gin.Context) error {
+func (ur UserRolesRepo) InsertNewUserRole(ctx *gin.Context, username, rolename string) error {
 
 	tx, err := ur.DB.BeginTx(ctx, nil)
 	if err != nil {
