@@ -16,6 +16,7 @@ const (
 
 var UsersRepoTest *UsersRepo
 var BooksRepoTest *BooksRepo
+var UserRolesTest *UserRolesRepo
 
 func TestMain(m *testing.M) {
 
@@ -27,6 +28,7 @@ func TestMain(m *testing.M) {
 
 	BooksRepoTest = NewBooksRepo(conn)
 	UsersRepoTest = NewUsersRepo(conn)
+	UserRolesTest = NewUserRolesRepo(conn)
 
 	os.Exit(m.Run())
 
