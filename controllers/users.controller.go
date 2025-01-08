@@ -59,14 +59,6 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 		return
 	}
 
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
-			"message": err.Error(),
-			"info":    "fail2",
-		})
-		return
-	}
-
 	var info string
 	info, err = uc.UsersService.RegisterNewUser(ctx, UsersModel)
 	if err != nil {
