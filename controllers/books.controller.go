@@ -44,7 +44,7 @@ func (bc BooksController) unprocessableEntityErrorResp(message string, err strin
 
 func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	var book_info_row models.Books
-	var err error
+	var err error = nil
 	var id_param string
 	var id_param_int int
 	id_param, ok := ctx.Params.Get("id")
@@ -74,7 +74,7 @@ func (bc BooksController) GetBookByID(ctx *gin.Context) {
 
 func (bc BooksController) SearchBooksByName(ctx *gin.Context) {
 	var reqBody models.Books
-	var err error
+	var err error = nil
 
 	err = ctx.ShouldBindJSON(&reqBody)
 	if err != nil {
@@ -100,7 +100,7 @@ func (bc BooksController) SearchBooksByName(ctx *gin.Context) {
 
 func (bc BooksController) SearchBooksByAuthorName(ctx *gin.Context) {
 	var reqBody models.Author
-	var err error
+	var err error = nil
 
 	err = ctx.ShouldBindJSON(&reqBody)
 	if err != nil {

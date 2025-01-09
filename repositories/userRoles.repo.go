@@ -114,9 +114,11 @@ func (ur UserRolesRepo) FetchRolesByUsername(ctx context.Context, username strin
 
 }
 
-func (ur UserRolesRepo) DeleteUserRole(ctx *gin.Context, username, rolename string) error {
+func (ur UserRolesRepo) DeleteUserRole(ctx context.Context, username, rolename string) error {
 
-	tx, err := ur.DB.BeginTx(ctx, nil)
+	var tx *sql.Tx
+	var err error = nil
+	tx, err = ur.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}

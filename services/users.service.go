@@ -20,7 +20,7 @@ func (us UsersService) GetInfoUsernamePassword(ctx context.Context, username str
 
 	var username_val string
 	var hash_password string
-	var err error
+	var err error = nil
 
 	username_val, hash_password, err = us.UsersRepo.FetchPasswordByUsername(ctx, username)
 	if err != nil {
@@ -60,7 +60,7 @@ func (us UsersService) AuthLoginProcess(ctx context.Context, username string, pa
 }
 
 func (us UsersService) RegisterNewUser(ctx context.Context, UsersModel models.Users) (string, error) {
-	var err error
+	var err error = nil
 	var username string = UsersModel.Username
 	var hash_password string
 	hash_password, err = utils.HashPasswordUser(UsersModel.Password)

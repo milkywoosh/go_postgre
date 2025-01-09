@@ -21,7 +21,7 @@ func StartConnectDB(config *ConfigDB) {
 	// what PATTERN TO USE??
 
 	// var DB *sql.DB
-	var err error
+	var err error = nil
 	conn_credential := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai`, config.DBHost, config.DBPort, config.DBUsername, config.DBPassword, config.DBName)
 	DB, err = sql.Open("postgres", conn_credential)
 

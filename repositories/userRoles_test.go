@@ -15,7 +15,7 @@ import (
 func TestFetchRolesByUsername(t *testing.T) {
 	// var info_roles []RoleStructTest
 	var roles []string = []string{}
-	var err error
+	var err error = nil
 	info_roles, err := UserRolesTest.FetchRolesByUsername(context.Background(), "luke")
 	for i := 0; i < len(info_roles); i++ {
 		roles = append(roles, info_roles[i].RoleName)

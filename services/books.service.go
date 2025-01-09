@@ -16,7 +16,7 @@ type BooksService struct {
 
 func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) (models.Books, error) {
 	var book_info_row models.Books
-	var err error
+	var err error = nil
 
 	book_info_row, err = bs.BooksRepo.FetchBookByID(ctx, book_id)
 	// note: handle error di sisi service
@@ -28,7 +28,7 @@ func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) (models.Boo
 
 func (bs BooksService) SearchLikeName(ctx context.Context, name_like string) ([]models.BooksLike, error) {
 	var search_info_rows []models.BooksLike
-	var err error
+	var err error = nil
 
 	search_info_rows, err = bs.BooksRepo.FetchBooksLikeName(ctx, name_like)
 	if err != nil {
@@ -38,7 +38,7 @@ func (bs BooksService) SearchLikeName(ctx context.Context, name_like string) ([]
 }
 
 func (bs BooksService) SearchBookByAuthor(ctx context.Context, author_name_like string) ([]models.BooksAuthorLike, error) {
-	var err error
+	var err error = nil
 	var searchResults []models.BooksAuthorLike
 
 	searchResults, err = bs.BooksRepo.FetchBooksByAuthor(ctx, author_name_like)

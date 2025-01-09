@@ -48,7 +48,7 @@ func (uc UsersController) unprocessableEntityErrorResp(message string, err strin
 
 func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 
-	var err error
+	var err error = nil
 	var UsersModel models.Users
 
 	if err = ctx.ShouldBindJSON(&UsersModel); err != nil {
@@ -74,7 +74,7 @@ func (uc UsersController) RegistrationNewUser(ctx *gin.Context) {
 func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	// var Users *models.Users
 	var username string
-	var err error
+	var err error = nil
 	var id_param_int int
 
 	// bisa pake ini user request PATH params :id
@@ -123,7 +123,7 @@ func (uc UsersController) Login(c *gin.Context) {
 
 	var DataUserReqBody models.Users
 
-	var err error
+	var err error = nil
 	if err = c.ShouldBindJSON(&DataUserReqBody); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),

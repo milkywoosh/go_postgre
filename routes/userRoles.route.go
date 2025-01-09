@@ -20,4 +20,5 @@ func (ru *RoleUsersRouteController) RoleUsersRoute(routerGroup *gin.RouterGroup)
 	router.GET("/get_roles/:username", ru.UserRolesController.GetRolesByUsername)
 	router.POST("/assign_role", ru.UserRolesController.AssignRolesBeginTx)
 	router.DELETE("/delete_role", ru.UserRolesController.DeleteRoleBeginTx)
+	router.DELETE("/delete_role_service", ru.UserRolesController.DeleteRoleServiceBeginTx)
 }

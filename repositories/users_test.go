@@ -10,7 +10,7 @@ import (
 func TestFetchPasswordByUsername(t *testing.T) {
 	var username string
 	var pw string
-	var err error
+	var err error = nil
 	username, pw, err = UsersRepoTest.FetchPasswordByUsername(context.Background(), "benten")
 
 	require.NoError(t, err, "error check FetchPasswordByUsername")

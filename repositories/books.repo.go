@@ -23,7 +23,7 @@ func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) (models.Book
 
 	var book_info models.Books
 	var row *sql.Row
-	var err error
+	var err error = nil
 
 	query_book_get_by_id := `SELECT id, title, stock_qty, price FROM books b where b.id = $1`
 	row = br.DB.QueryRowContext(ctx, query_book_get_by_id, book_id)
@@ -43,7 +43,7 @@ func (br BooksRepo) FetchBooksLikeName(ctx context.Context, name_like string) ([
 
 	query_books_like := fmt.Sprintf(`SELECT title, price FROM books b WHERE title LIKE %s`, "'%'||$1||'%'") // '%'||$1||'%'
 	var rows *sql.Rows
-	var err error
+	var err error = nil
 	var eachResult models.BooksLike
 	var searchResults []models.BooksLike = make([]models.BooksLike, 0)
 
@@ -78,7 +78,7 @@ func (br BooksRepo) FetchBooksByAuthor(ctx context.Context, author_name_like str
       WHERE author_name LIKE %s`, "'%'||$1||'%'") // '%'||$1||'%'
 
 	var rows *sql.Rows
-	var err error
+	var err error = nil
 	var eachResult models.BooksAuthorLike
 	var searchResults []models.BooksAuthorLike = make([]models.BooksAuthorLike, 0)
 

@@ -22,11 +22,20 @@ func NewUserRolesService(arg_db *sql.DB) UserRolesService {
 
 func (urs UserRolesService) WhatRoles(ctx context.Context, username string) ([]repositories.RoleStruct, error) {
 	var roles_info []repositories.RoleStruct = []repositories.RoleStruct{}
-	var err error
+	var err error = nil
 	roles_info, err = urs.UserRolesRepo.FetchRolesByUsername(ctx, username)
 
 	if err != nil {
 		return roles_info, err
 	}
 	return roles_info, nil
+}
+
+func (urs UserRolesService) DeleteRoleOfUser(ctx context.Context, username, role_name string) error {
+	var err error = nil
+	err = urs.UserRolesRepo.DeleteUserRole(ctx, username, role_name)
+	if err != nil {
+		return err
+	}
+	return nil
 }

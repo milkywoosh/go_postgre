@@ -23,7 +23,7 @@ func (ur UsersRepo) FetchPasswordByUsername(ctx context.Context, username string
 	// tampungan hash password fetch frsom DB
 	var username_val string
 	var hash_password string
-	var err error
+	var err error = nil
 
 	query_get_user := `SELECT 
 		u.username, 
@@ -45,7 +45,7 @@ func (ur UsersRepo) FetchPasswordByUsername(ctx context.Context, username string
 
 func (ur UsersRepo) InsertNewUser(ctx context.Context, UsersModel models.Users, hash_pass string) error {
 	var tx *sql.Tx
-	var err error
+	var err error = nil
 
 	tx, err = ur.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
@@ -86,7 +86,7 @@ func (ur UsersRepo) FetchUserByID(ctx *gin.Context, user_id int) (string, error)
 	get_by_id_query := `select username from users u where u.id = $1`
 
 	var username string
-	var err error
+	var err error = nil
 	var rows *sql.Row = ur.DB.QueryRowContext(ctx, get_by_id_query, user_id)
 	if err = rows.Scan(&username); err != nil {
 		return "", err
