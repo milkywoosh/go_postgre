@@ -39,3 +39,12 @@ func (urs UserRolesService) DeleteRoleOfUser(ctx context.Context, username, role
 	}
 	return nil
 }
+
+func (urs UserRolesService) AssignRoleService(ctx context.Context, username, role_name string) (string, error) {
+	var err error = nil
+	err = urs.UserRolesRepo.AddNewRole(ctx, username, role_name)
+	if err != nil {
+		return "error", err
+	}
+	return "no error", nil
+}
