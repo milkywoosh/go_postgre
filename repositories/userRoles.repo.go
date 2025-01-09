@@ -184,7 +184,7 @@ func (ur UserRolesRepo) DeleteUserRole(ctx context.Context, username, rolename s
 	return nil
 }
 
-func (ur UserRolesRepo) InsertNewUserRole(ctx *gin.Context, username, rolename string) error {
+func (ur UserRolesRepo) AddNewRole(ctx context.Context, username, rolename string) error {
 
 	tx, err := ur.DB.BeginTx(ctx, nil)
 	if err != nil {
