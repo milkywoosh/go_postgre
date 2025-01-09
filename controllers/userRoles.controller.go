@@ -104,36 +104,6 @@ func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 	})
 }
 
-func (ru UserRolesController) DeleteRoleBeginTx(ctx *gin.Context) {
-
-	// assign role 1 by 1
-	// request => username, rolename insert user_roles role_id, user_id values (1=admin, 203=benten, if each not found? handled by rollback?)
-	type reqAssignRole struct {
-		Username string `json:"username"`
-		RoleName string `json:"rolename"`
-	}
-
-	var DeleteRoleDataReqBody reqAssignRole
-	var err error = nil
-	if err = ctx.ShouldBindJSON(&DeleteRoleDataReqBody); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-			"fail":    "fail DataUserReqBody",
-		})
-		return
-	}
-
-	err = ru.UserRolesRepo.DeleteUserRole(ctx, DeleteRoleDataReqBody.Username, DeleteRoleDataReqBody.RoleName)
-	if err != nil {
-		ru.unprocessableEntityErrorResp("failed delete role transaction", err.Error(), ctx)
-		return
-	}
-
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"err":     "no_data",
-		"message": "success delete role",
-	})
-}
 func (ru UserRolesController) DeleteRoleServiceBeginTx(ctx *gin.Context) {
 
 	// assign role 1 by 1
