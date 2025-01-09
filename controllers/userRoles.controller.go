@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/repositories"
@@ -11,7 +10,7 @@ import (
 )
 
 type UserRolesController struct {
-	UserRolesRepo    repositories.UserRolesRepo
+	// UserRolesRepo    repositories.UserRolesRepo
 	UserRolesService services.UserRolesService
 }
 
@@ -20,9 +19,9 @@ type UserRolesController struct {
 // constructor
 func NewUserRolesController(arg_db *sql.DB) UserRolesController {
 	return UserRolesController{
-		UserRolesRepo: repositories.UserRolesRepo{
-			DB: arg_db,
-		}, // mnote : harusnya userroles compose ke service!
+		// UserRolesRepo: repositories.UserRolesRepo{
+		// 	DB: arg_db,
+		// }, // mnote : harusnya userroles compose ke service!
 		UserRolesService: services.UserRolesService{
 			UserRolesRepo: repositories.UserRolesRepo{
 				DB: arg_db,
@@ -46,32 +45,6 @@ func (ru UserRolesController) unprocessableEntityErrorResp(message string, err s
 	})
 }
 
-func (ru UserRolesController) GetRoleOfUser(ctx *gin.Context) {
-	var id_param_int int
-	var err error = nil
-	id_param, ok := ctx.Params.Get("user_id")
-	if !ok {
-		ru.badRequestErrorResp("failed get param id", "error", ctx)
-		return
-	}
-
-	id_param_int, err = strconv.Atoi(id_param)
-	if err != nil {
-		ru.badRequestErrorResp("failed get param", "id conversion failed", ctx)
-		return
-	}
-
-	var AllRolesData []repositories.RoleStruct
-	AllRolesData, err = ru.UserRolesRepo.FetchRoleByID(id_param_int, ctx)
-	if err != nil {
-		ru.unprocessableEntityErrorResp("err fetch role by id", err.Error(), ctx)
-	}
-	ctx.JSON(http.StatusAccepted, gin.H{
-		"data_user": AllRolesData,
-		"message":   "ok",
-	})
-}
-
 // // check perbedaan
 func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 
@@ -91,15 +64,15 @@ func (ru UserRolesController) AssignRolesBeginTx(ctx *gin.Context) {
 		})
 		return
 	}
-
-	err = ru.UserRolesRepo.InsertNewUserRole(ctx, AssignRoleDataReqBody.Username, AssignRoleDataReqBody.RoleName)
+	var info string = ""
+	info, err = ru.UserRolesService.AssignRoleService(ctx, AssignRoleDataReqBody.Username, AssignRoleDataReqBody.RoleName)
 	if err != nil {
 		ru.unprocessableEntityErrorResp("err insert new user_role", err.Error(), ctx)
 		return
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"err":     "no_data",
+		"err":     info,
 		"message": "success add new role",
 	})
 }

@@ -61,4 +61,4 @@ check_roles:
 	SELECT r.role_name, u.username from user_roles ur \
 	INNER JOIN users u on u.id = ur.user_id \
 	INNER JOIN roles r on r.id = ur.role_id \
-	where u.username = 'luke'"
+	where u.username = 'ben'"
