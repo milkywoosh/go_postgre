@@ -73,7 +73,7 @@ func (ur UserRolesRepo) FetchRoleByID(user_id int, ctx *gin.Context) ([]RoleStru
 func (ur UserRolesRepo) FetchRolesByUsername(ctx context.Context, username string) ([]RoleStruct, error) {
 
 	get_by_id_query := `
-		SELECT r.role_name from user_roles ur
+		SELECT u.username, r.role_name from user_roles ur
 		INNER JOIN users u on u.id = ur.user_id
 		INNER JOIN roles r on r.id = ur.role_id
 		where u.username = $1 
@@ -89,6 +89,7 @@ func (ur UserRolesRepo) FetchRolesByUsername(ctx context.Context, username strin
 
 	for rows.Next() {
 		if err := rows.Scan(
+			&EachRoleData.Username,
 			&EachRoleData.RoleName,
 		); err != nil {
 			// Check for a scan error.
