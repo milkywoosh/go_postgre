@@ -126,3 +126,37 @@ func (bc BooksController) SearchBooksByAuthorName(ctx *gin.Context) {
 	})
 
 }
+
+func (bc BooksController) UploadBulkyXlsx(ctx *gin.Context) {
+
+	read_form_file, err := ctx.FormFile("filename")
+	if err != nil {
+		bc.badRequestErrorResp("failed read file from client", err.Error(), ctx)
+		return
+	}
+	// const maxFileSize = 10 * 1024 // 5 KB
+	const maxFileSize = 5 * 1024 * 1024 // ~ 1 mb
+	if read_form_file.Size > maxFileSize {
+		bc.badRequestErrorResp("file size is too big", fmt.Sprintf("uploaded file size %d MB, is bigger than the limit %d MB", (read_form_file.Size/(1024*1024)), (maxFileSize/(1024*1024))), ctx)
+		return
+	}
+
+	password_excel := ctx.PostForm("password")
+	file_content, err := read_form_file.Open()
+	if err != nil {
+		bc.badRequestErrorResp("failed open file", err.Error(), ctx)
+		return
+	}
+
+	result_data, err := bc.BooksService.UploadBulkyBooks(ctx, file_content, password_excel)
+	if err != nil {
+		bc.badRequestErrorResp("failed read rows", err.Error(), ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"result":  len(result_data["data"]), //searchResults,
+		"token":   "no token",
+		"message": "ok",
+	})
+}
