@@ -4,9 +4,12 @@ package services
 
 import (
 	"context"
+	"io"
 
 	"github.com/milkyway/gin_beginer/models"
 	"github.com/milkyway/gin_beginer/repositories"
+	xlsx "github.com/milkyway/gin_beginer/utils"
+	"github.com/xuri/excelize/v2"
 )
 
 // note: layer ini khusus bisnis logic, data received from REPO layer
@@ -47,4 +50,22 @@ func (bs BooksService) SearchBookByAuthor(ctx context.Context, author_name_like 
 	}
 
 	return searchResults, nil
+}
+
+func (bs BooksService) UploadBulkyBooks(ctx context.Context, file_content io.Reader, password string) (map[string][][]string, error) {
+	var opts excelize.Options
+	if password == "" {
+		password = ""
+	}
+	opts.Password = password
+	data, err := xlsx.OpenReader(file_content, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string][][]string = make(map[string][][]string)
+	result["header"] = [][]string{data[0]}
+	length_data := len(data)
+	result["data"] = data[1:length_data]
+	return result, nil
 }
