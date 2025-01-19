@@ -76,6 +76,10 @@ func main() {
 
 	// Default
 	server.Use(cors.New(corsConfig))
+	// limit multipart size upload
+	// max 5 mb = 1 << 20
+	// max 5 kb = 5 << 10
+	server.MaxMultipartMemory = 1 * 1024 * 1024
 	// trial
 	// server.Use(corsConfig)
 
