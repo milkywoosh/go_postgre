@@ -135,7 +135,7 @@ func (bc BooksController) UploadBulkyXlsx(ctx *gin.Context) {
 		return
 	}
 	// const maxFileSize = 10 * 1024 // 5 KB
-	const maxFileSize = 5 * 1024 * 1024 // ~ 1 mb
+	const maxFileSize = 20 * 1024 * 1024 // ~ 1 mb
 	if read_form_file.Size > maxFileSize {
 		bc.badRequestErrorResp("file size is too big", fmt.Sprintf("uploaded file size %d MB, is bigger than the limit %d MB", (read_form_file.Size/(1024*1024)), (maxFileSize/(1024*1024))), ctx)
 		return
@@ -154,8 +154,16 @@ func (bc BooksController) UploadBulkyXlsx(ctx *gin.Context) {
 		return
 	}
 
+	err = bc.BooksService.BooksRepo.InsertManyBooks(ctx, result_data)
+	if err != nil {
+		bc.badRequestErrorResp("failed upload data", err.Error(), ctx)
+		return
+
+	}
+
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"result":  len(result_data["data"]), //searchResults,
+		// "result":  len(result_data["data"]), //searchResults,
+		"result":  "success upload bulky", //searchResults,
 		"token":   "no token",
 		"message": "ok",
 	})
