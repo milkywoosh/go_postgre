@@ -105,3 +105,54 @@ func (br BooksRepo) FetchBooksByAuthor(ctx context.Context, author_name_like str
 
 	return searchResults, nil
 }
+
+type ListBulkyBookParams [][]string
+
+func (br BooksRepo) InsertManyBooks(ctx context.Context, arg ListBulkyBookParams) error {
+	var tx *sql.Tx
+	var err error = nil
+	var opts *sql.TxOptions = &sql.TxOptions{
+		Isolation: sql.LevelReadCommitted, // Choose an appropriate isolation level
+		ReadOnly:  false,                  // Set to true if this is a read-only operation
+	}
+
+	tx, err = br.DB.BeginTx(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	query_insert := "INSERT INTO books (title, price, stock_qty) VALUES ($1, $2, $3)"
+	stmt, err := tx.PrepareContext(ctx, query_insert)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer stmt.Close()
+
+	for i, row := range arg {
+		if i == 0 {
+			continue
+		}
+		title := row[0]
+		price := row[1]
+		stock_qty := row[2]
+
+		if _, err := stmt.ExecContext(ctx, title, price, stock_qty); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to execute statement: %w", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (br BooksRepo) InsertManyBooksConcurrent(ctx context.Context, arg ListBulkyBookParams) error {
+
+	// br.DB.BeginTx(ctx)
+	// br.DB.ExecContext()
+
+	return fmt.Errorf("not yet implemented")
+}
