@@ -3,6 +3,19 @@ NEXT UPLOAD VIA CSV !!! multipart management!
 good reference:
 - https://dev.to/janirefdez/connect-rest-api-to-database-with-go-d8m
 
+========================================================
+
+upload excel file bulk using channel vs biasa
+
+========================================================
+
+create model entity database letak di models.go
+
+param argumen struct di repositories
+
+========================================================
+
+
 
 how to run server
 - go run main.go
@@ -55,3 +68,13 @@ REFRESH_TOKEN_MAXAGE=60
 
 
 =======================================================
+note time to insert
+=> REGULAR NO GOROUTINE
+xlsxdata => 54 nanosecond
+seriburows.xlsx => 1.21 second
+thousands.xlsx => 3 minutes 19.74 s
+
+
+=>  GOROUTINE
+xlsxdata =>  ????
+seriburows.xlsx => ????
