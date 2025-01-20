@@ -52,7 +52,8 @@ func (bs BooksService) SearchBookByAuthor(ctx context.Context, author_name_like 
 	return searchResults, nil
 }
 
-func (bs BooksService) UploadBulkyBooks(ctx context.Context, file_content io.Reader, password string) (map[string][][]string, error) {
+func (bs BooksService) UploadBulkyBooks(ctx context.Context, file_content io.Reader, password string) ([][]string, error) {
+	// map[string][][]string
 	var opts excelize.Options
 	if password == "" {
 		password = ""
@@ -63,9 +64,9 @@ func (bs BooksService) UploadBulkyBooks(ctx context.Context, file_content io.Rea
 		return nil, err
 	}
 
-	var result map[string][][]string = make(map[string][][]string)
-	result["header"] = [][]string{data[0]}
-	length_data := len(data)
-	result["data"] = data[1:length_data]
-	return result, nil
+	// var result map[string][][]string = make(map[string][][]string)
+	// result["header"] = [][]string{data[0]}
+	// length_data := len(data)
+	// result["data"] = data[1:length_data]
+	return data, nil
 }
