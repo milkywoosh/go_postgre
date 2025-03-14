@@ -35,7 +35,7 @@ func NewUsersController(db_arg *sql.DB) UsersController {
 func (uc UsersController) badRequestErrorResp(message string, err string, ctx *gin.Context) {
 	var response models.BodyReponseAPI = models.BodyReponseAPI{}
 	response.Data = nil
-	response.Message = message
+	response.Message = fmt.Sprintf("%s: %s", message, err)
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"body": response,
 	})
@@ -44,7 +44,7 @@ func (uc UsersController) badRequestErrorResp(message string, err string, ctx *g
 func (uc UsersController) unprocessableEntityErrorResp(message string, err string, ctx *gin.Context) {
 	var response models.BodyReponseAPI = models.BodyReponseAPI{}
 	response.Data = nil
-	response.Message = message
+	response.Message = fmt.Sprintf("%s: %s", message, err)
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"body": response,
 	})

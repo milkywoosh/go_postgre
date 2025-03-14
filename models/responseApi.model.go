@@ -1,6 +1,6 @@
 package models
 
 type BodyReponseAPI struct {
-	Data    any // same as interface{} type
-	Message string
+	Data    any    `json:"data"` // same as interface{} type
+	Message string `json:"message"`
 }
