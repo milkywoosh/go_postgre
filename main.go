@@ -41,6 +41,12 @@ func init() {
 
 	initializer.StartConnectDB(&config)
 
+	// TEST : pindah dari init() ke main()
+
+}
+
+func main() {
+
 	UsersController = controllers.NewUsersController(initializer.DB)
 	UsersRouteController = routes.NewRouteUsersController(UsersController)
 
@@ -52,9 +58,6 @@ func init() {
 
 	server = gin.Default()
 
-}
-
-func main() {
 	fmt.Println("test")
 
 	config, err := initializer.LoadConfig(".") // why 2x init ?

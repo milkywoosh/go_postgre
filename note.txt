@@ -1,5 +1,20 @@
 NEXT UPLOAD VIA CSV !!! multipart management!
 
+
+========================================================
+
+FORMAT RESPONSE
+
+{
+    body: {
+        data: ,
+        message: ,
+    }
+}
+
+========================================================
+
+
 good reference:
 - https://dev.to/janirefdez/connect-rest-api-to-database-with-go-d8m
 

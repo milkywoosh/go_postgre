@@ -33,16 +33,20 @@ func NewUsersController(db_arg *sql.DB) UsersController {
 }
 
 func (uc UsersController) badRequestErrorResp(message string, err string, ctx *gin.Context) {
+	var response models.BodyReponseAPI = models.BodyReponseAPI{}
+	response.Data = nil
+	response.Message = message
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-		"message": message,
-		"err":     err,
+		"body": response,
 	})
 }
 
 func (uc UsersController) unprocessableEntityErrorResp(message string, err string, ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-		"message": message,
-		"err":     err,
+	var response models.BodyReponseAPI = models.BodyReponseAPI{}
+	response.Data = nil
+	response.Message = message
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		"body": response,
 	})
 }
 
@@ -76,6 +80,7 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	var username string
 	var err error = nil
 	var id_param_int int
+	var response models.BodyReponseAPI = models.BodyReponseAPI{}
 
 	// bisa pake ini user request PATH params :id
 	// id_param := ctx.Param("id")
@@ -83,14 +88,19 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 	idx_query_param, ok := ctx.Params.Get("id")
 
 	if !ok {
+
+		response.Data = nil
+		response.Message = "failed get param"
+
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "failed get param",
+			"body": response,
 		})
 		return
 	}
 
 	id_param_int, err = strconv.Atoi(idx_query_param)
 	if err != nil {
+		// default response models.BodyReponseAPI
 		uc.badRequestErrorResp("failed get param", "id conversion failed", ctx)
 		return
 	}
@@ -111,10 +121,18 @@ func (uc UsersController) GetUserByID(ctx *gin.Context) {
 		})
 		return
 	}
+
+	response.Data = struct {
+		Data_user string
+		Token     string
+	}{
+		Data_user: username,
+		Token:     token,
+	}
+	response.Message = "ok"
+
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"data_user": username,
-		"token":     token,
-		"message":   "ok",
+		"body": response,
 	})
 
 }
