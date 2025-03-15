@@ -17,6 +17,13 @@ type BooksService struct {
 	BooksRepo repositories.BooksRepo
 }
 
+// implement Prototype Interface
+func (bs BooksService) Clone() Prototype {
+	return &BooksService{
+		BooksRepo: bs.BooksRepo,
+	}
+}
+
 func (bs BooksService) GetBookInfo(ctx context.Context, book_id int) (models.Books, error) {
 	var book_info_row models.Books
 	var err error = nil

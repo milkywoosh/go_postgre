@@ -42,6 +42,37 @@ func (bc BooksController) unprocessableEntityErrorResp(message string, err strin
 	})
 }
 
+func (bc BooksController) CheckClone(ctx *gin.Context) {
+	books_service := bc.BooksService.Clone().(*services.BooksService)
+
+	var book_info_row models.Books
+	var err error = nil
+	var id_param string
+	var id_param_int int
+	id_param, ok := ctx.Params.Get("id")
+
+	if !ok {
+		bc.badRequestErrorResp("failed get param", "id param not found", ctx)
+		return
+	}
+	id_param_int, err = strconv.Atoi(id_param)
+	if err != nil {
+		bc.badRequestErrorResp("failed get param", "id conversion failed", ctx)
+		return
+	}
+
+	book_info_row, err = books_service.GetBookInfo(ctx, id_param_int)
+	if err != nil {
+		bc.unprocessableEntityErrorResp("err get book by ID", err.Error(), ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"book_info": book_info_row,
+		"message":   "ok",
+	})
+}
+
 func (bc BooksController) GetBookByID(ctx *gin.Context) {
 	var book_info_row models.Books
 	var err error = nil
