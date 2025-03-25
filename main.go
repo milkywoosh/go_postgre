@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/milkyway/gin_beginer/controllers"
 	"github.com/milkyway/gin_beginer/initializer"
+	"github.com/milkyway/gin_beginer/repositories"
 	"github.com/milkyway/gin_beginer/routes"
 )
 
@@ -95,6 +96,26 @@ func main() {
 	router.GET("/healthchecker", func(ctx *gin.Context) {
 		message := "Welcome to Gin"
 		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": message})
+	})
+
+	router.GET("/check", func(ctx *gin.Context) {
+		book_repo := repositories.NewBooksRepo(initializer.DB)
+
+		book_id, err := book_repo.BookIsExistedByID(ctx, 1300)
+		if err != nil {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  "error",
+				"message": err.Error(),
+				"data":    book_id,
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "message",
+			"data":    book_id,
+		})
+
 	})
 
 	UsersRouteController.UsersRoute(router)
