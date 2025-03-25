@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/milkyway/gin_beginer/models"
 )
@@ -37,6 +38,35 @@ func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) (models.Book
 	}
 
 	return book_info, nil
+}
+
+func (br BooksRepo) BookIsExistedByID(ctx context.Context, book_id int) (int, error) {
+
+	var book_info models.Books
+	var row *sql.Row
+	var err error = nil
+
+	query_book_get_by_id := `SELECT id FROM books b where b.id = $1`
+	row = br.DB.QueryRowContext(ctx, query_book_get_by_id, book_id)
+
+	// if row kosong
+
+	if err = row.Scan(&book_info.ID); err != nil {
+		log.Printf("=========>  %v ==> %v", err, err == sql.ErrNoRows)
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("data is not found")
+		}
+		return book_info.ID, err
+	}
+
+	if err == sql.ErrNoRows {
+		return 0, err
+	}
+	if err = row.Err(); err != nil {
+		return book_info.ID, err
+	}
+
+	return book_info.ID, nil
 }
 
 func (br BooksRepo) FetchBooksLikeName(ctx context.Context, name_like string) ([]models.BooksLike, error) {
