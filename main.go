@@ -28,6 +28,8 @@ var (
 	BooksRouteController routes.BooksRouteController
 	// purchase manager
 
+	CustomersController      controllers.CustomersController
+	CustomersRouteController routes.CustomersRouteController
 )
 
 // init() function is RUN BEFORE main() function
@@ -55,6 +57,9 @@ func main() {
 
 	BooksController = controllers.NewBooksController(initializer.DB)
 	BooksRouteController = routes.NewRouteBooksController(BooksController)
+
+	CustomersController = controllers.NewCustomersController(initializer.DB)
+	CustomersRouteController = routes.NewRouteCustomersController(CustomersController)
 
 	server = gin.Default()
 
@@ -95,6 +100,7 @@ func main() {
 	UsersRouteController.UsersRoute(router)
 	RoleUsersRouteController.RoleUsersRoute(router)
 	BooksRouteController.BooksRoutes(router)
+	CustomersRouteController.CustomersRoutes(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
