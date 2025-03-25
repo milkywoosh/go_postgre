@@ -65,3 +65,21 @@ func (cc CustomersController) GetBookByRegistryNumber(ctx *gin.Context) {
 		"body": response,
 	})
 }
+
+func (cc CustomersController) OrderBooks(ctx *gin.Context) {
+	var response models.BodyReponseAPI = models.BodyReponseAPI{}
+
+	var order_req_info []services.OrderBookRequest
+
+	if err := ctx.ShouldBindJSON(&order_req_info); err != nil {
+		badRequestErrorResp("error request order book", err.Error(), ctx)
+		return
+	}
+	// get request []req_data
+
+	response.Data = order_req_info
+	response.Message = "testing"
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": response,
+	})
+}
