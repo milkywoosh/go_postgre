@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/milkyway/gin_beginer/models"
 )
@@ -41,6 +42,9 @@ func (cr CustomersRepo) FetchByRegistry(ctx context.Context, cust_reg string) (m
 		&cust_info.CreatedAt,
 		&cust_info.CustRegistry,
 	); err != nil {
+		if err == sql.ErrNoRows {
+			return cust_info, fmt.Errorf("data is not found")
+		}
 		return cust_info, err
 	}
 
