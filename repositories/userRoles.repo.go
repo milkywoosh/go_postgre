@@ -14,8 +14,8 @@ type UserRolesRepo struct {
 	DB *sql.DB
 }
 
-func NewUserRolesRepo(arg_db *sql.DB) *UserRolesRepo {
-	return &UserRolesRepo{
+func NewUserRolesRepo(arg_db *sql.DB) UserRolesRepo {
+	return UserRolesRepo{
 		DB: arg_db,
 	}
 }

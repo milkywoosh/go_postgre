@@ -15,8 +15,8 @@ type CustomersRepo struct {
 	DB *sql.DB
 }
 
-func NewCustomersRepo(arg_db *sql.DB) *CustomersRepo {
-	return &CustomersRepo{
+func NewCustomersRepo(arg_db *sql.DB) CustomersRepo {
+	return CustomersRepo{
 		DB: arg_db,
 	}
 }
