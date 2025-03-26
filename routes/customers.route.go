@@ -16,6 +16,6 @@ func NewRouteCustomersController(CustomersController controllers.CustomersContro
 func (crc CustomersRouteController) CustomersRoutes(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("customers")
 
-	router.GET("/:registry-cust", crc.CustomersController.GetBookByRegistryNumber)
-	router.POST("/order-books", crc.CustomersController.OrderBooks)
+	router.GET("/:registry-cust", nil)
+	router.POST("/order-books", nil)
 }
