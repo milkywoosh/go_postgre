@@ -12,13 +12,21 @@ import (
 	"github.com/milkyway/gin_beginer/initializer"
 	"github.com/milkyway/gin_beginer/repositories"
 	"github.com/milkyway/gin_beginer/routes"
+	"github.com/milkyway/gin_beginer/services"
 )
 
 var (
 	server *gin.Engine
 	// KENAPA HARUS PAKE POINTER TYPE????
 
-	// User Manager
+	// repos
+	BooksRepo     repositories.BooksRepo
+	CustomersRepo repositories.CustomersRepo
+
+	// service
+	OrdersService services.OrdersService
+
+	// controller
 	UsersController      controllers.UsersController
 	UsersRouteController routes.UsersRouteController
 
@@ -31,6 +39,9 @@ var (
 
 	CustomersController      controllers.CustomersController
 	CustomersRouteController routes.CustomersRouteController
+
+	OrdersController      controllers.OrdersController
+	OrdersRouteController routes.OrdersRouteController
 )
 
 // init() function is RUN BEFORE main() function
@@ -49,6 +60,14 @@ func init() {
 }
 
 func main() {
+
+	// repo ============
+	BooksRepo = repositories.NewBooksRepo(initializer.DB)
+	CustomersRepo = repositories.NewCustomersRepo(initializer.DB)
+	// ============
+	OrdersService = services.NewOrdersService(BooksRepo, CustomersRepo)
+	OrdersController = controllers.NewOrdersController(OrdersService)
+	OrdersRouteController = routes.NewRouteOrdersController(OrdersController)
 
 	UsersController = controllers.NewUsersController(initializer.DB)
 	UsersRouteController = routes.NewRouteUsersController(UsersController)
@@ -99,9 +118,9 @@ func main() {
 	})
 
 	router.GET("/check", func(ctx *gin.Context) {
-		book_repo := repositories.NewBooksRepo(initializer.DB)
+		books_repo := repositories.NewBooksRepo(initializer.DB)
 
-		book_id, err := book_repo.BookIsExistedByID(ctx, 1300)
+		book_id, err := books_repo.BookIsExistedByID(ctx, 1300)
 		if err != nil {
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"status":  "error",
@@ -122,6 +141,7 @@ func main() {
 	RoleUsersRouteController.RoleUsersRoute(router)
 	BooksRouteController.BooksRoutes(router)
 	CustomersRouteController.CustomersRoutes(router)
+	OrdersRouteController.OrdersRoutes(router)
 
 	// Default => deal with firewall
 	run_server := fmt.Sprintf("127.0.0.1:%s", config.ServerPort)
