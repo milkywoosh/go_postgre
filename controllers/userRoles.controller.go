@@ -17,8 +17,8 @@ type UserRolesController struct {
 // NOTE: harusnya function call ke DB dipisah dari controllers !
 
 // constructor
-func NewUserRolesController(arg_db *sql.DB) UserRolesController {
-	return UserRolesController{
+func NewUserRolesController(arg_db *sql.DB) *UserRolesController {
+	return &UserRolesController{
 		// UserRolesRepo: repositories.UserRolesRepo{
 		// 	DB: arg_db,
 		// }, // mnote : harusnya userroles compose ke service!

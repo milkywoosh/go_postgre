@@ -9,8 +9,8 @@ type BooksRouteController struct {
 	BooksController controllers.BooksController
 }
 
-func NewRouteBooksController(BooksController controllers.BooksController) BooksRouteController {
-	return BooksRouteController{BooksController}
+func NewRouteBooksController(BooksController controllers.BooksController) *BooksRouteController {
+	return &BooksRouteController{BooksController}
 }
 
 func (brc BooksRouteController) BooksRoutes(routerGroup *gin.RouterGroup) {

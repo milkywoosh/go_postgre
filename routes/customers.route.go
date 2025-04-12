@@ -9,11 +9,11 @@ type CustomersRouteController struct {
 	CustomersController controllers.CustomersController
 }
 
-func NewRouteCustomersController(CustomersController controllers.CustomersController) CustomersRouteController {
-	return CustomersRouteController{CustomersController}
+func NewRouteCustomersController(CustomersController controllers.CustomersController) *CustomersRouteController {
+	return &CustomersRouteController{CustomersController}
 }
 
-func (crc CustomersRouteController) CustomersRoutes(routerGroup *gin.RouterGroup) {
+func (crc *CustomersRouteController) CustomersRoutes(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("customers")
 
 	router.GET("/:registry-cust", nil)

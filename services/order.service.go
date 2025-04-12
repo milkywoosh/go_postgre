@@ -9,8 +9,8 @@ type OrdersService struct {
 	CustomersRepo repositories.CustomersRepo
 }
 
-func NewOrdersService(booksRepo repositories.BooksRepo, custRepo repositories.CustomersRepo) OrdersService {
-	return OrdersService{
+func NewOrdersService(booksRepo repositories.BooksRepo, custRepo repositories.CustomersRepo) *OrdersService {
+	return &OrdersService{
 		BooksRepo:     booksRepo,
 		CustomersRepo: custRepo,
 	}

@@ -9,8 +9,8 @@ type RoleUsersRouteController struct {
 	UserRolesController controllers.UserRolesController
 }
 
-func NewRouteUserRolesController(UserRolesController controllers.UserRolesController) RoleUsersRouteController {
-	return RoleUsersRouteController{UserRolesController}
+func NewRouteUserRolesController(UserRolesController controllers.UserRolesController) *RoleUsersRouteController {
+	return &RoleUsersRouteController{UserRolesController}
 }
 
 func (ru *RoleUsersRouteController) RoleUsersRoute(routerGroup *gin.RouterGroup) {

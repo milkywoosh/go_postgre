@@ -13,8 +13,8 @@ type UsersRepo struct {
 }
 
 // for testing repo
-func NewUsersRepo(arg_db *sql.DB) UsersRepo {
-	return UsersRepo{
+func NewUsersRepo(arg_db *sql.DB) *UsersRepo {
+	return &UsersRepo{
 		DB: arg_db,
 	}
 }

@@ -22,8 +22,8 @@ type UsersController struct {
 // NOTE: harusnya function call ke DB dipisah dari controllers !
 
 // constructor
-func NewUsersController(db_arg *sql.DB) UsersController {
-	return UsersController{
+func NewUsersController(db_arg *sql.DB) *UsersController {
+	return &UsersController{
 		UsersService: services.UsersService{
 			UsersRepo: repositories.UsersRepo{
 				DB: db_arg,

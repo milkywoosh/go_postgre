@@ -18,8 +18,8 @@ type BooksController struct {
 
 // constructor
 // note : possibly using interface ? look chatGPT
-func NewBooksController(db_arg *sql.DB) BooksController {
-	return BooksController{
+func NewBooksController(db_arg *sql.DB) *BooksController {
+	return &BooksController{ 
 		BooksService: services.BooksService{
 			BooksRepo: repositories.BooksRepo{
 				DB: db_arg,

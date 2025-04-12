@@ -14,8 +14,8 @@ type BooksRepo struct {
 }
 
 // for testing repo
-func NewBooksRepo(arg_db *sql.DB) BooksRepo {
-	return BooksRepo{
+func NewBooksRepo(arg_db *sql.DB) *BooksRepo {
+	return &BooksRepo{
 		DB: arg_db,
 	}
 }

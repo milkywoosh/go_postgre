@@ -12,8 +12,8 @@ type UserRolesService struct {
 	UserRolesRepo repositories.UserRolesRepo
 }
 
-func NewUserRolesService(arg_db *sql.DB) UserRolesService {
-	return UserRolesService{
+func NewUserRolesService(arg_db *sql.DB) *UserRolesService {
+	return &UserRolesService{
 		UserRolesRepo: repositories.UserRolesRepo{
 			DB: arg_db,
 		},

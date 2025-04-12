@@ -14,8 +14,8 @@ type OrdersController struct {
 
 // constructor
 // note : possibly using interface ? look chatGPT
-func NewOrdersController(services services.OrdersService) OrdersController {
-	return OrdersController{
+func NewOrdersController(services services.OrdersService) *OrdersController {
+	return &OrdersController{
 		OrdersService: services,
 	}
 }
