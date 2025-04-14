@@ -9,12 +9,12 @@ import (
 )
 
 type OrdersController struct {
-	OrdersService services.OrdersService
+	OrdersService *services.OrdersService
 }
 
 // constructor
 // note : possibly using interface ? look chatGPT
-func NewOrdersController(services services.OrdersService) *OrdersController {
+func NewOrdersController(services *services.OrdersService) *OrdersController {
 	return &OrdersController{
 		OrdersService: services,
 	}

@@ -6,10 +6,10 @@ import (
 )
 
 type CustomersRouteController struct {
-	CustomersController controllers.CustomersController
+	CustomersController *controllers.CustomersController
 }
 
-func NewRouteCustomersController(CustomersController controllers.CustomersController) *CustomersRouteController {
+func NewRouteCustomersController(CustomersController *controllers.CustomersController) *CustomersRouteController {
 	return &CustomersRouteController{CustomersController}
 }
 

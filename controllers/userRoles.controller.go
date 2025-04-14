@@ -11,7 +11,7 @@ import (
 
 type UserRolesController struct {
 	// UserRolesRepo    repositories.UserRolesRepo
-	UserRolesService services.UserRolesService
+	UserRolesService *services.UserRolesService
 }
 
 // NOTE: harusnya function call ke DB dipisah dari controllers !
@@ -22,8 +22,8 @@ func NewUserRolesController(arg_db *sql.DB) *UserRolesController {
 		// UserRolesRepo: repositories.UserRolesRepo{
 		// 	DB: arg_db,
 		// }, // mnote : harusnya userroles compose ke service!
-		UserRolesService: services.UserRolesService{
-			UserRolesRepo: repositories.UserRolesRepo{
+		UserRolesService: &services.UserRolesService{
+			UserRolesRepo: &repositories.UserRolesRepo{
 				DB: arg_db,
 			},
 		},

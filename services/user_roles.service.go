@@ -9,12 +9,12 @@ import (
 
 // logic business
 type UserRolesService struct {
-	UserRolesRepo repositories.UserRolesRepo
+	UserRolesRepo *repositories.UserRolesRepo
 }
 
 func NewUserRolesService(arg_db *sql.DB) *UserRolesService {
 	return &UserRolesService{
-		UserRolesRepo: repositories.UserRolesRepo{
+		UserRolesRepo: &repositories.UserRolesRepo{
 			DB: arg_db,
 		},
 	}

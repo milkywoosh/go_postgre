@@ -6,10 +6,10 @@ import (
 )
 
 type RoleUsersRouteController struct {
-	UserRolesController controllers.UserRolesController
+	UserRolesController *controllers.UserRolesController
 }
 
-func NewRouteUserRolesController(UserRolesController controllers.UserRolesController) *RoleUsersRouteController {
+func NewRouteUserRolesController(UserRolesController *controllers.UserRolesController) *RoleUsersRouteController {
 	return &RoleUsersRouteController{UserRolesController}
 }
 

@@ -5,11 +5,11 @@ import (
 )
 
 type OrdersService struct {
-	BooksRepo     repositories.BooksRepo
-	CustomersRepo repositories.CustomersRepo
+	BooksRepo     *repositories.BooksRepo
+	CustomersRepo *repositories.CustomersRepo
 }
 
-func NewOrdersService(booksRepo repositories.BooksRepo, custRepo repositories.CustomersRepo) *OrdersService {
+func NewOrdersService(booksRepo *repositories.BooksRepo, custRepo *repositories.CustomersRepo) *OrdersService {
 	return &OrdersService{
 		BooksRepo:     booksRepo,
 		CustomersRepo: custRepo,

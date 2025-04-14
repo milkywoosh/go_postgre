@@ -20,28 +20,28 @@ var (
 	// KENAPA HARUS PAKE POINTER TYPE????
 
 	// repos
-	BooksRepo     repositories.BooksRepo
-	CustomersRepo repositories.CustomersRepo
+	BooksRepo     *repositories.BooksRepo
+	CustomersRepo *repositories.CustomersRepo
 
 	// service
-	OrdersService services.OrdersService
+	OrdersService *services.OrdersService
 
 	// controller
-	UsersController      controllers.UsersController
-	UsersRouteController routes.UsersRouteController
+	UsersController      *controllers.UsersController
+	UsersRouteController *routes.UsersRouteController
 
-	UserRolesController      controllers.UserRolesController
-	RoleUsersRouteController routes.RoleUsersRouteController
+	UserRolesController      *controllers.UserRolesController
+	RoleUsersRouteController *routes.RoleUsersRouteController
 
-	BooksController      controllers.BooksController
-	BooksRouteController routes.BooksRouteController
+	BooksController      *controllers.BooksController
+	BooksRouteController *routes.BooksRouteController
 	// purchase manager
 
-	CustomersController      controllers.CustomersController
-	CustomersRouteController routes.CustomersRouteController
+	CustomersController      *controllers.CustomersController
+	CustomersRouteController *routes.CustomersRouteController
 
-	OrdersController      controllers.OrdersController
-	OrdersRouteController routes.OrdersRouteController
+	OrdersController      *controllers.OrdersController
+	OrdersRouteController *routes.OrdersRouteController
 )
 
 // init() function is RUN BEFORE main() function
