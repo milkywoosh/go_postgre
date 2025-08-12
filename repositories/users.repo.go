@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/milkyway/gin_beginer/models"
@@ -17,6 +18,10 @@ func NewUsersRepo(arg_db *sql.DB) *UsersRepo {
 	return &UsersRepo{
 		DB: arg_db,
 	}
+}
+
+func (ur UsersRepo) FetchUsernamePassword(ctx context.Context, username string) (string, string, error) {
+	return "data1", "data2", errors.New("Error fetch")
 }
 
 func (ur UsersRepo) FetchPasswordByUsername(ctx context.Context, username string) (string, string, error) {
