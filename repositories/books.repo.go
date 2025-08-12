@@ -29,7 +29,12 @@ func (br BooksRepo) FetchBookByID(ctx context.Context, book_id int) (models.Book
 	query_book_get_by_id := `SELECT id, title, stock_qty, price FROM books b where b.id = $1`
 	row = br.DB.QueryRowContext(ctx, query_book_get_by_id, book_id)
 
-	if err = row.Scan(&book_info.ID, &book_info.BookName, &book_info.StockQty, &book_info.Price); err != nil {
+	if err = row.Scan(
+		&book_info.ID,
+		&book_info.BookName,
+		&book_info.StockQty,
+		&book_info.Price,
+	); err != nil {
 		if err == sql.ErrNoRows {
 			return book_info, fmt.Errorf("data is not found")
 		}
